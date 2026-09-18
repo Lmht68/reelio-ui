@@ -1,8 +1,10 @@
+import { TranscriptDialog } from './TranscriptDialog'
 import { getMarketName } from '../extraction/markets'
-import type { Platform, Source } from '../extraction/types'
+import type { Platform, Source, Transcript } from '../extraction/types'
 
 interface SourceContextProps {
   source: Source
+  transcript: Transcript
   effectiveMarket: string
   onAnotherSource: () => void
 }
@@ -35,7 +37,7 @@ function formatDuration(durationSeconds: number): string {
   return parts.join(' ')
 }
 
-export function SourceContext({ source, effectiveMarket, onAnotherSource }: SourceContextProps) {
+export function SourceContext({ source, transcript, effectiveMarket, onAnotherSource }: SourceContextProps) {
   const platformName = platformNames[source.platform]
   const sourceTitle = source.title || `${platformName} Source`
   const effectiveMarketName = getMarketName(effectiveMarket) ?? effectiveMarket
@@ -58,9 +60,12 @@ export function SourceContext({ source, effectiveMarket, onAnotherSource }: Sour
         </p>
         <p className="source-context-market">Effective Market: {effectiveMarketName}</p>
       </div>
-      <button className="button secondary" type="button" onClick={onAnotherSource}>
-        Check another Source
-      </button>
+      <div className="source-context-actions">
+        <TranscriptDialog transcript={transcript} />
+        <button className="button quiet" type="button" onClick={onAnotherSource}>
+          Check another Source
+        </button>
+      </div>
     </section>
   )
 }

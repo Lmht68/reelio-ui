@@ -1,12 +1,13 @@
-import type { ExtractionResponse, Source } from '../../extraction/types'
+import type { ExtractionResponse, Source, Transcript } from '../../extraction/types'
 
-interface EmptyResponseOptions {
+interface ExtractionResponseOptions {
   market?: string
   source?: Partial<Source>
+  transcript?: Partial<Transcript>
 }
 
 export function createEmptyExtractionResponse(
-  options: EmptyResponseOptions = {},
+  options: ExtractionResponseOptions = {},
 ): ExtractionResponse {
   return {
     market: options.market ?? 'US',
@@ -24,6 +25,7 @@ export function createEmptyExtractionResponse(
       text: 'Transcript text.',
       language: 'en',
       method: 'youtube_captions',
+      ...options.transcript,
     },
     statistics: {
       movies: { n_mentions: 0, n_resolved: 0, n_unresolved: 0 },
@@ -42,8 +44,10 @@ export function createEmptyExtractionResponse(
   }
 }
 
-export function createNonEmptyExtractionResponse(): ExtractionResponse {
-  const response = createEmptyExtractionResponse()
+export function createNonEmptyExtractionResponse(
+  options: ExtractionResponseOptions = {},
+): ExtractionResponse {
+  const response = createEmptyExtractionResponse(options)
   return {
     ...response,
     statistics: {

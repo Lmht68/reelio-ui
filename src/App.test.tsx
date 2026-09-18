@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -248,6 +248,7 @@ describe('Source Extraction application', () => {
 
     await submitPublicVideo(user, 'https://www.tiktok.com/@alias/video/1234567890123456789')
     const emptyHeading = await screen.findByRole('heading', { name: 'No results found' })
+    const sourceRegion = screen.getByRole('region', { name: 'Source' })
     const canonicalLink = screen.getByRole('link', { name: /Canonical returned Source on TikTok/ })
     expect(canonicalLink).toHaveAttribute('href', canonicalUrl)
     expect(canonicalLink).toHaveAttribute('target', '_blank')
@@ -255,7 +256,8 @@ describe('Source Extraction application', () => {
     expect(screen.getByText('Effective Market: Japan')).toBeVisible()
     expect(emptyHeading).toHaveFocus()
     expect(screen.queryByText('Description that must not be rendered')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /transcript/i })).not.toBeInTheDocument()
+    expect(within(sourceRegion).getByRole('button', { name: 'View Transcript' })).toBeVisible()
+    expect(within(sourceRegion).getByRole('button', { name: 'Check another Source' })).toBeVisible()
     expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
@@ -270,5 +272,51 @@ describe('Source Extraction application', () => {
     expect(screen.queryByRole('heading', { name: 'No results found' })).not.toBeInTheDocument()
     expect(screen.queryByText('Unrendered Movie')).not.toBeInTheDocument()
     expect(screen.queryByText(/Result Statistics|Movies|TV Series|Tracks|Music Releases|Book Works/)).not.toBeInTheDocument()
+  })
+
+  it('shows complete Transcript provenance and restores its trigger focus after closing', async () => {
+    const user = userEvent.setup()
+    const transcriptText =
+      'First paragraph preserves the phrase marigold circuit.\n\nSecond paragraph preserves the phrase cobalt archive.'
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        createNonEmptyExtractionResponse({
+          transcript: {
+            text: transcriptText,
+            language: 'en-GB',
+            method: 'whisper',
+          },
+        }),
+      ),
+    )
+    render(<App />)
+
+    await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    const transcriptTrigger = await screen.findByRole('button', { name: 'View Transcript' })
+
+    await user.click(transcriptTrigger)
+    const dialog = await screen.findByRole('dialog', { name: 'Transcript' })
+    expect(
+      within(dialog).getByText((_, element) => element?.textContent === transcriptText, {
+        selector: 'p',
+      }),
+    ).toBeVisible()
+    expect(within(dialog).getByText('en-GB')).toBeVisible()
+    expect(within(dialog).getByText('Speech transcription')).toBeVisible()
+    expect(within(dialog).queryByText('whisper')).not.toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Close Transcript' })).toHaveFocus()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Close Transcript' }))
+    expect(screen.queryByRole('dialog', { name: 'Transcript' })).not.toBeInTheDocument()
+    expect(transcriptTrigger).toHaveFocus()
+
+    transcriptTrigger.focus()
+    await user.keyboard('{Enter}')
+    const reopenedDialog = await screen.findByRole('dialog', { name: 'Transcript' })
+    expect(within(reopenedDialog).getByRole('button', { name: 'Close Transcript' })).toHaveFocus()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Transcript' })).not.toBeInTheDocument()
+    expect(transcriptTrigger).toHaveFocus()
   })
 })

@@ -40,6 +40,7 @@ function App() {
           <div className="completed-shell">
             <SourceContext
               source={state.response.source}
+              transcript={state.response.transcript}
               effectiveMarket={state.response.market}
               onAnotherSource={startAnotherSource}
             />

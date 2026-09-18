@@ -273,6 +273,14 @@ main {
   min-width: 0;
 }
 
+.source-context-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .source-context .eyebrow {
   margin-bottom: 0.25rem;
 }
@@ -291,6 +299,90 @@ main {
   margin: 0.35rem 0 0;
   color: var(--muted);
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.transcript-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: min(80dvh, 760px);
+  padding: 0;
+  color: var(--ink);
+  background: var(--surface-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-large);
+  box-shadow: 0 1.5rem 3.5rem rgb(0 0 0 / 35%);
+  overflow: hidden;
+}
+
+.transcript-dialog:not([open]) {
+  display: none;
+}
+
+.transcript-dialog::backdrop {
+  background: rgb(2 4 7 / 72%);
+}
+
+.transcript-dialog-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.transcript-dialog-header > div {
+  min-width: 0;
+}
+
+.transcript-dialog-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.transcript-dialog-header .button {
+  flex: 0 0 auto;
+}
+
+.transcript-dialog-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.transcript-dialog-metadata div {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.transcript-dialog-metadata dt {
+  color: var(--accent-strong);
+  font-weight: 750;
+}
+
+.transcript-dialog-metadata dd {
+  margin: 0;
+}
+
+.transcript-dialog-body {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: calc(min(80dvh, 760px) - 5.7rem);
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.transcript-dialog-text {
+  margin: 0;
+  color: var(--ink);
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
@@ -341,7 +433,32 @@ main {
     flex-direction: column;
   }
 
-  .source-context .button {
+  .source-context-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .source-context-actions > .button.quiet {
+    min-height: 3rem;
+    padding: 0.66rem 1.05rem;
+  }
+
+  .transcript-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .transcript-dialog-body {
+    flex: 1 1 auto;
+    max-height: none;
+  }
+
+  .source-context-actions > .button {
     width: 100%;
   }
 }
