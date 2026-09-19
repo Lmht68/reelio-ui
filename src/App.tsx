@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { ExtractionForm } from './components/ExtractionForm'
 import { ExtractionStatus } from './components/ExtractionStatus'
+import { MusicResults } from './components/MusicResults'
 import { ScreenWorkResults } from './components/ScreenWorkResults'
 import { SourceContext } from './components/SourceContext'
 import { EFFECTIVE_MARKETS } from './extraction/markets'
@@ -60,6 +61,10 @@ function App() {
                 <ScreenWorkResults
                   movies={state.response.results.movies}
                   tvSeries={state.response.results.tv_series}
+                />
+                <MusicResults
+                  tracks={state.response.results.tracks}
+                  musicReleases={state.response.results.music_releases}
                 />
               </section>
             )}
