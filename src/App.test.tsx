@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import {
   createEmptyExtractionResponse,
-  createNonEmptyExtractionResponse,
+  createScreenWorkExtractionResponse,
   extractionErrorEnvelope,
 } from './test/fixtures/extraction'
 
@@ -261,17 +261,113 @@ describe('Source Extraction application', () => {
     expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
-  it('keeps a non-empty Extraction truthful until later Result renderers exist', async () => {
+  it('should render resolved and unresolved Movies and TV Series when a completed Extraction contains Screen Work Results', async () => {
     const user = userEvent.setup()
-    fetchMock.mockResolvedValueOnce(jsonResponse(createNonEmptyExtractionResponse()))
+    fetchMock.mockResolvedValueOnce(jsonResponse(createScreenWorkExtractionResponse()))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     const completedHeading = await screen.findByRole('heading', { name: 'Extraction complete' })
+    const moviesHeading = screen.getByRole('heading', { name: 'Movies' })
+    const tvSeriesHeading = screen.getByRole('heading', { name: 'TV Series' })
+    const resolvedMovieCard = screen.getByRole('button', {
+      name: "Open details for Le Fabuleux Destin d'Amélie Poulain",
+    })
+    const unresolvedMovieCard = screen.getByRole('button', { name: 'Open details for Unknown Movie' })
+    const resolvedTvSeriesCard = screen.getByRole('button', { name: 'Open details for The Last of Us' })
+    const unresolvedTvSeriesCard = screen.getByRole('button', {
+      name: 'Open details for Unknown TV Series',
+    })
+
     expect(completedHeading).toHaveFocus()
-    expect(screen.queryByRole('heading', { name: 'No results found' })).not.toBeInTheDocument()
-    expect(screen.queryByText('Unrendered Movie')).not.toBeInTheDocument()
-    expect(screen.queryByText(/Result Statistics|Movies|TV Series|Tracks|Music Releases|Book Works/)).not.toBeInTheDocument()
+    expect(screen.getAllByRole('heading').indexOf(moviesHeading)).toBeLessThan(
+      screen.getAllByRole('heading').indexOf(tvSeriesHeading),
+    )
+    expect(resolvedMovieCard).toHaveTextContent("Le Fabuleux Destin d'Amélie Poulain")
+    expect(resolvedMovieCard).toHaveTextContent('2000')
+    expect(resolvedMovieCard).toHaveTextContent('TMDB 7.9')
+    expect(resolvedMovieCard).toHaveTextContent('Mentioned as Amélie (2001)')
+    expect(screen.queryByText('Mentioned as The Last of Us (2023)')).not.toBeInTheDocument()
+    expect(
+      within(resolvedMovieCard).getByRole('img', {
+        name: "Poster unavailable for Le Fabuleux Destin d'Amélie Poulain",
+      }),
+    ).toBeVisible()
+
+    const tvPoster = within(resolvedTvSeriesCard).getByRole('img', {
+      name: 'Poster for The Last of Us',
+    })
+    expect(resolvedTvSeriesCard).toHaveTextContent('2023')
+    expect(resolvedTvSeriesCard).toHaveTextContent('TMDB 8.6')
+    fireEvent.error(tvPoster)
+    expect(
+      within(resolvedTvSeriesCard).getByRole('img', {
+        name: 'Poster unavailable for The Last of Us',
+      }),
+    ).toBeVisible()
+    expect(within(unresolvedMovieCard).getByText('Unresolved')).toBeVisible()
+    expect(within(unresolvedTvSeriesCard).getByText('Unresolved')).toBeVisible()
+    expect(screen.queryByText(/Result Statistics/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Tracks' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Music Releases' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Book Works' })).not.toBeInTheDocument()
+  })
+
+  it('should show verified Screen Work details and restore focus when a Result card is opened', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce(jsonResponse(createScreenWorkExtractionResponse()))
+    render(<App />)
+
+    await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    const resolvedTvSeriesCard = await screen.findByRole('button', {
+      name: 'Open details for The Last of Us',
+    })
+
+    resolvedTvSeriesCard.focus()
+    await user.keyboard('{Enter}')
+    const resolvedDialog = await screen.findByRole('dialog', { name: 'The Last of Us details' })
+    const tmdbLink = within(resolvedDialog).getByRole('link', {
+      name: 'Open The Last of Us on TMDB, opens in a new tab',
+    })
+
+    expect(within(resolvedDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(
+      within(resolvedDialog).getByText('A smuggler escorts a teenager across a ruined America.'),
+    ).toBeVisible()
+    expect(within(resolvedDialog).getByText('Craig Mazin, Neil Druckmann')).toBeVisible()
+    expect(within(resolvedDialog).getByText('Pedro Pascal, Bella Ramsey')).toBeVisible()
+    expect(within(resolvedDialog).getByText('Final air year')).toBeVisible()
+    expect(within(resolvedDialog).getByText('Unavailable')).toBeVisible()
+    expect(tmdbLink).toHaveTextContent('Open on TMDB')
+    expect(tmdbLink).toHaveAttribute('href', 'https://www.themoviedb.org/tv/100088')
+    expect(tmdbLink).toHaveAttribute('target', '_blank')
+    expect(tmdbLink).toHaveAttribute('rel', 'noopener noreferrer')
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'The Last of Us details' })).not.toBeInTheDocument()
+    expect(resolvedTvSeriesCard).toHaveFocus()
+
+    const unresolvedMovieCard = screen.getByRole('button', { name: 'Open details for Unknown Movie' })
+    unresolvedMovieCard.focus()
+    await user.keyboard('{Enter}')
+    const unresolvedDialog = await screen.findByRole('dialog', { name: 'Unknown Movie details' })
+
+    expect(
+      within(unresolvedDialog).getByText(
+        'Reelio could not verify this Movie Mention against TMDB, so provider metadata is unavailable.',
+      ),
+    ).toBeVisible()
+    expect(
+      within(unresolvedDialog).getByRole('img', { name: 'Poster unavailable for Unknown Movie' }),
+    ).toBeVisible()
+    expect(
+      within(unresolvedDialog).queryByText('A Parisian woman quietly improves the lives around her.'),
+    ).not.toBeInTheDocument()
+    expect(within(unresolvedDialog).queryByText('Directors')).not.toBeInTheDocument()
+    expect(within(unresolvedDialog).queryByText('Cast')).not.toBeInTheDocument()
+    expect(within(unresolvedDialog).queryByText('TMDB 7.9 / 10')).not.toBeInTheDocument()
+    expect(within(unresolvedDialog).queryByRole('img', { name: /Poster for/ })).not.toBeInTheDocument()
+    expect(within(unresolvedDialog).queryByRole('link', { name: /TMDB/ })).not.toBeInTheDocument()
   })
 
   it('shows complete Transcript provenance and restores its trigger focus after closing', async () => {
@@ -280,7 +376,7 @@ describe('Source Extraction application', () => {
       'First paragraph preserves the phrase marigold circuit.\n\nSecond paragraph preserves the phrase cobalt archive.'
     fetchMock.mockResolvedValueOnce(
       jsonResponse(
-        createNonEmptyExtractionResponse({
+        createScreenWorkExtractionResponse({
           transcript: {
             text: transcriptText,
             language: 'en-GB',

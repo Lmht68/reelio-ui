@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { ExtractionForm } from './components/ExtractionForm'
 import { ExtractionStatus } from './components/ExtractionStatus'
+import { ScreenWorkResults } from './components/ScreenWorkResults'
 import { SourceContext } from './components/SourceContext'
 import { EFFECTIVE_MARKETS } from './extraction/markets'
 import { useExtractionWorkflow } from './extraction/workflow'
@@ -52,10 +53,14 @@ function App() {
                 onAnotherSource={startAnotherSource}
               />
             ) : (
-              <section className="completed-panel state-panel" aria-labelledby="extraction-completed-heading">
+              <section className="completed-panel" aria-labelledby="extraction-completed-heading">
                 <h2 id="extraction-completed-heading" ref={completedHeadingRef} tabIndex={-1}>
                   Extraction complete
                 </h2>
+                <ScreenWorkResults
+                  movies={state.response.results.movies}
+                  tvSeries={state.response.results.tv_series}
+                />
               </section>
             )}
           </div>
