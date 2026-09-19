@@ -8,6 +8,9 @@
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: -0.045em;
@@ -120,7 +123,10 @@ main {
 }
 
 .advanced-options summary {
+  display: inline-flex;
+  align-items: center;
   width: fit-content;
+  min-height: 3rem;
   cursor: pointer;
   font-size: 0.88rem;
   font-weight: 700;
@@ -164,7 +170,6 @@ main {
 }
 
 .button.quiet {
-  min-height: auto;
   padding: 0.3rem 0;
   color: var(--muted);
   background: transparent;
@@ -286,8 +291,10 @@ main {
 }
 
 .source-context-title {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   max-width: 100%;
+  min-height: 3rem;
   color: var(--accent-strong);
   font-weight: 750;
   overflow-wrap: anywhere;
@@ -813,6 +820,7 @@ main {
 .book-work-detail-link {
   display: inline-flex;
   align-items: center;
+  min-height: 3rem;
   color: var(--accent-strong);
   font-weight: 750;
   text-underline-offset: 0.2em;
@@ -851,6 +859,15 @@ main {
   .pending-placeholder-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .waiting-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .waiting-head .button.quiet {
+    width: 100%;
+  }
+
 
   .source-context {
     align-items: flex-start;

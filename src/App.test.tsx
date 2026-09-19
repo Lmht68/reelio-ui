@@ -263,6 +263,59 @@ describe('Source Extraction application', () => {
     expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
+  it('should render every Result category in fixed order without statistics when an Extraction completes with all five categories', async () => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce(jsonResponse(createBookWorkExtractionResponse()))
+    render(<App />)
+
+    await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    await screen.findByRole('heading', { name: 'Extraction complete' })
+    const categoryHeadings = screen.getAllByRole('heading', { level: 3 })
+
+    expect(categoryHeadings.map(({ textContent }) => textContent)).toEqual([
+      'Movies',
+      'TV Series',
+      'Tracks',
+      'Music Releases',
+      'Book Works',
+    ])
+    for (const heading of categoryHeadings) {
+      const region = screen.getByRole('region', { name: heading.textContent ?? '' })
+      expect(region).toHaveAttribute('aria-labelledby', heading.id)
+      expect(within(region).getByRole('list')).toBeVisible()
+    }
+    expect(screen.getByRole('link', { name: 'Skip to main content' })).toHaveAttribute('href', '#main')
+    expect(screen.getByRole('region', { name: 'Extraction complete' })).toHaveAttribute(
+      'aria-labelledby',
+      'extraction-completed-heading',
+    )
+    expect(screen.queryByText('Result Statistics')).not.toBeInTheDocument()
+    expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
+  })
+
+  it('should omit empty Result categories while preserving order when an Extraction completes with partial results', async () => {
+    const user = userEvent.setup()
+    const response = createBookWorkExtractionResponse()
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        ...response,
+        results: {
+          ...response.results,
+          movies: [],
+          music_releases: [],
+        },
+      }),
+    )
+    render(<App />)
+
+    await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    await screen.findByRole('heading', { name: 'Extraction complete' })
+
+    expect(
+      screen.getAllByRole('heading', { level: 3 }).map(({ textContent }) => textContent),
+    ).toEqual(['TV Series', 'Tracks', 'Book Works'])
+  })
+
   it('should render resolved and unresolved Movies and TV Series when a completed Extraction contains Screen Work Results', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createScreenWorkExtractionResponse()))
@@ -310,9 +363,6 @@ describe('Source Extraction application', () => {
     expect(within(unresolvedMovieCard).getByText('Unresolved')).toBeVisible()
     expect(within(unresolvedTvSeriesCard).getByText('Unresolved')).toBeVisible()
     expect(screen.queryByText(/Result Statistics/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Tracks' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Music Releases' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Book Works' })).not.toBeInTheDocument()
   })
 
   it('should show verified Screen Work details and restore focus when a Result card is opened', async () => {
@@ -378,10 +428,7 @@ describe('Source Extraction application', () => {
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    const moviesHeading = await screen.findByRole('heading', { name: 'Movies' })
-    const tvSeriesHeading = screen.getByRole('heading', { name: 'TV Series' })
-    const tracksHeading = screen.getByRole('heading', { name: 'Tracks' })
-    const musicReleasesHeading = screen.getByRole('heading', { name: 'Music Releases' })
+    await screen.findByRole('heading', { name: 'Tracks' })
     const resolvedTrackCard = screen.getByRole('button', {
       name: 'Open Spotify Track details for One More Time (2011 Remaster) by DAFT PUNK, Romanthony',
     })
@@ -395,10 +442,6 @@ describe('Source Extraction application', () => {
       name: 'Open unresolved Music Release Mention details for Unknown Release by Unknown Artist',
     })
 
-    const headings = screen.getAllByRole('heading')
-    expect(headings.indexOf(moviesHeading)).toBeLessThan(headings.indexOf(tvSeriesHeading))
-    expect(headings.indexOf(tvSeriesHeading)).toBeLessThan(headings.indexOf(tracksHeading))
-    expect(headings.indexOf(tracksHeading)).toBeLessThan(headings.indexOf(musicReleasesHeading))
     expect(resolvedTrackCard).toHaveTextContent('One More Time (2011 Remaster)')
     expect(resolvedTrackCard).toHaveTextContent('DAFT PUNK, Romanthony')
     expect(resolvedTrackCard).toHaveTextContent('Spotify Track')
@@ -550,11 +593,7 @@ describe('Source Extraction application', () => {
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    const moviesHeading = await screen.findByRole('heading', { name: 'Movies' })
-    const tvSeriesHeading = screen.getByRole('heading', { name: 'TV Series' })
-    const tracksHeading = screen.getByRole('heading', { name: 'Tracks' })
-    const musicReleasesHeading = screen.getByRole('heading', { name: 'Music Releases' })
-    const bookWorksHeading = screen.getByRole('heading', { name: 'Book Works' })
+    await screen.findByRole('heading', { name: 'Book Works' })
     const resolvedBookCard = screen.getByRole('button', {
       name: 'Open Open Library Book Work details for Pride and Prejudice by Jane Austen',
     })
@@ -565,11 +604,6 @@ describe('Source Extraction application', () => {
       name: 'Open unresolved Book Mention details for Unknown Book by Unknown Author',
     })
 
-    const headings = screen.getAllByRole('heading')
-    expect(headings.indexOf(moviesHeading)).toBeLessThan(headings.indexOf(tvSeriesHeading))
-    expect(headings.indexOf(tvSeriesHeading)).toBeLessThan(headings.indexOf(tracksHeading))
-    expect(headings.indexOf(tracksHeading)).toBeLessThan(headings.indexOf(musicReleasesHeading))
-    expect(headings.indexOf(musicReleasesHeading)).toBeLessThan(headings.indexOf(bookWorksHeading))
     expect(resolvedBookCard).toHaveTextContent('Pride and Prejudice')
     expect(resolvedBookCard).toHaveTextContent('Jane Austen')
     expect(resolvedBookCard).toHaveTextContent('Open Library Book Work')
