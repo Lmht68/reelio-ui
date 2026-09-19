@@ -196,6 +196,86 @@ export function createMusicExtractionResponse(
   }
 }
 
+export function createBookWorkExtractionResponse(
+  options: ExtractionResponseOptions = {},
+): ExtractionResponse {
+  const response = createMusicExtractionResponse(options)
+
+  return {
+    ...response,
+    statistics: {
+      ...response.statistics,
+      books: { n_mentions: 3, n_resolved: 2, n_unresolved: 1 },
+    },
+    results: {
+      ...response.results,
+      books: [
+        {
+          status: 'resolved',
+          book_mention: {
+            title: 'Pride & Prejudice',
+            authors: ['Jane Austen'],
+          },
+          book: {
+            title: 'Pride and Prejudice',
+            authors: [
+              {
+                open_library_author_id: 'OL21594A',
+                name: 'Jane Austen',
+                open_library_url: 'https://openlibrary.org/authors/OL21594A',
+              },
+            ],
+            open_library_work_id: 'OL66554W',
+            open_library_url: 'https://openlibrary.org/works/OL66554W',
+            edition: {
+              title: "Pride and Prejudice: A Collector's Edition",
+              publication_year: 1813,
+              publishers: ['T. Egerton'],
+              isbn_10: ['0141439513'],
+              isbn_13: ['9780141439518'],
+              open_library_edition_id: 'OL12345M',
+              open_library_url: 'https://openlibrary.org/books/OL12345M',
+              cover_url: null,
+            },
+            cover_url: null,
+            cover_edition_id: null,
+          },
+        },
+        {
+          status: 'resolved',
+          book_mention: {
+            title: 'The Long Ships: A Saga of the Viking Age',
+            authors: ['Frans G. Bengtsson'],
+          },
+          book: {
+            title: 'The Long Ships: A Saga of the Viking Age',
+            authors: [
+              {
+                open_library_author_id: 'OL1A',
+                name: 'Frans G. Bengtsson',
+                open_library_url: 'https://openlibrary.org/authors/OL1A',
+              },
+            ],
+            open_library_work_id: 'OL1W',
+            open_library_url: 'https://openlibrary.org/works/OL1W',
+            edition: null,
+            cover_url: 'https://covers.openlibrary.org/b/id/67890-L.jpg',
+            cover_edition_id: 'OL67890M',
+          },
+        },
+        {
+          status: 'unresolved',
+          book_mention: {
+            title: 'Unknown Book',
+            authors: ['Unknown Author'],
+          },
+          book: null,
+        },
+      ],
+    },
+  }
+}
+
 export function extractionErrorEnvelope(code: string, message = 'Sensitive backend detail.') {
   return { error: { code, message } }
 }

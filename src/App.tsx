@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { BookWorkResults } from './components/BookWorkResults'
 import { ExtractionForm } from './components/ExtractionForm'
 import { ExtractionStatus } from './components/ExtractionStatus'
 import { MusicResults } from './components/MusicResults'
@@ -66,6 +67,7 @@ function App() {
                   tracks={state.response.results.tracks}
                   musicReleases={state.response.results.music_releases}
                 />
+                <BookWorkResults books={state.response.results.books} />
               </section>
             )}
           </div>
