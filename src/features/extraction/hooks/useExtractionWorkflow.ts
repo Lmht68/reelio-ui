@@ -3,9 +3,9 @@ import {
   ExtractionApiError,
   type ExtractionFailureCode,
   runSourceExtraction,
-} from './api'
-import { DEFAULT_EFFECTIVE_MARKET, type EffectiveMarketCode } from './markets'
-import { hasExtractionResults, type ExtractionResponse } from './types'
+} from '../services/extractionApi'
+import { DEFAULT_EFFECTIVE_MARKET, type EffectiveMarketCode } from '../constants/markets'
+import { hasExtractionResults, type ExtractionResponse } from '../types'
 
 interface WorkflowBaseState {
   url: string

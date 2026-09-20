@@ -1,6 +1,6 @@
 import { TranscriptDialog } from './TranscriptDialog'
-import { getMarketName } from '../extraction/markets'
-import type { Platform, Source, Transcript } from '../extraction/types'
+import { getMarketName } from '../../constants/markets'
+import type { Platform, Source, Transcript } from '../../types'
 
 interface SourceContextProps {
   source: Source

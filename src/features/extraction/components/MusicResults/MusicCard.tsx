@@ -1,4 +1,4 @@
-import type { MusicReleaseResult, TrackResult } from '../extraction/types'
+import type { MusicReleaseResult, TrackResult } from '../../types'
 import { MusicArtwork } from './MusicArtwork'
 import {
   formatArtistNames,

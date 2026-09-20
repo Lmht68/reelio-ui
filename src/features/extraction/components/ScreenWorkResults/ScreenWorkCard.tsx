@@ -1,4 +1,4 @@
-import type { MovieResult, TVSeriesResult } from '../extraction/types'
+import type { MovieResult, TVSeriesResult } from '../../types'
 import { ScreenWorkArtwork } from './ScreenWorkArtwork'
 
 export type ScreenWorkSelection =

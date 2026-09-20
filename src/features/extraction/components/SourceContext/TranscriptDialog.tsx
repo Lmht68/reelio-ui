@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react'
-import type { Transcript, TranscriptMethod } from '../extraction/types'
+import type { Transcript, TranscriptMethod } from '../../types'
 
 const transcriptMethodNames: Record<TranscriptMethod, string> = {
   youtube_captions: 'YouTube captions',

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { BookResult } from '../extraction/types'
+import type { BookResult } from '../../types'
 import { BookWorkCard } from './BookWorkCard'
 import { BookWorkDetailDialog } from './BookWorkDetailDialog'
 

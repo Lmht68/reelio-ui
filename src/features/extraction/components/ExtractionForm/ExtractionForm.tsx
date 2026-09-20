@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { EffectiveMarket, EffectiveMarketCode } from '../extraction/markets'
+import type { EffectiveMarket, EffectiveMarketCode } from '../../constants/markets'
 
 interface ExtractionFormProps {
   url: string

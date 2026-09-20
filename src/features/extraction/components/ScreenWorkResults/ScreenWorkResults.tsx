@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { MovieResult, TVSeriesResult } from '../extraction/types'
+import type { MovieResult, TVSeriesResult } from '../../types'
 import { ScreenWorkCard, type ScreenWorkSelection } from './ScreenWorkCard'
 import { ScreenWorkDetailDialog } from './ScreenWorkDetailDialog'
 

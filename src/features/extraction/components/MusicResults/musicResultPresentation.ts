@@ -3,7 +3,7 @@ import type {
   MusicReleaseMention,
   Track,
   TrackMention,
-} from '../extraction/types'
+} from '../../types'
 
 export function formatArtistNames(names: ReadonlyArray<string>): string {
   return names.join(', ')

@@ -1,4 +1,4 @@
-import type { ExtractionResponse, Source, Transcript } from '../../extraction/types'
+import type { ExtractionResponse, Source, Transcript } from '../../features/extraction'
 
 interface ExtractionResponseOptions {
   market?: string

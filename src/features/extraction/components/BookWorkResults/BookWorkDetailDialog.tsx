@@ -5,7 +5,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react'
-import type { BookResult } from '../extraction/types'
+import type { BookResult } from '../../types'
 import { BookWorkArtwork } from './BookWorkArtwork'
 import {
   formatAuthorCredits,

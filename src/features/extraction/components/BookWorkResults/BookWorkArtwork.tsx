@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { BookMention } from '../extraction/types'
+import type { BookMention } from '../../types'
 import { formatAuthorCredits, formatBookWorkIdentity } from './bookWorkResultPresentation'
 
 type ResolvedBookWorkArtworkProps = {

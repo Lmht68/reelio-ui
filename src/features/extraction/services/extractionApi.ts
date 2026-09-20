@@ -26,7 +26,7 @@ import type {
   TVSeries,
   TVSeriesMention,
   TVSeriesResult,
-} from './types'
+} from '../types'
 
 export type ExtractionFailureCode =
   | 'invalid_request'

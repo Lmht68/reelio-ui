@@ -1,4 +1,4 @@
-import type { Book, BookEdition, BookMention } from '../extraction/types'
+import type { Book, BookEdition, BookMention } from '../../types'
 
 export function formatAuthorCredits(names: ReadonlyArray<string>): string {
   return names.join(', ')

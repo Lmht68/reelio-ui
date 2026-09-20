@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import type { MusicReleaseResult, TrackResult } from '../extraction/types'
+import type { MusicReleaseResult, TrackResult } from '../../types'
 import { MusicCard, type MusicSelection } from './MusicCard'
 import { MusicDetailDialog } from './MusicDetailDialog'
 

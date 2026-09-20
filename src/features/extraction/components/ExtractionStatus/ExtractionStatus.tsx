@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import type { ExtractionWorkflowState } from '../extraction/workflow'
+import type { ExtractionWorkflowState } from '../../hooks/useExtractionWorkflow'
 
 interface ExtractionStatusProps {
   state: ExtractionWorkflowState
