@@ -9,10 +9,9 @@ import { MusicArtwork } from './MusicArtwork'
 import type { MusicSelection } from './MusicCard'
 import {
   formatArtistNames,
-  formatMusicReleaseDate,
   formatMusicReleaseMention,
-  formatMusicReleaseType,
   formatTrackMention,
+  getAvailableMusicText,
   isMusicReleaseMentionDifferent,
   isTrackMentionDifferent,
 } from './musicResultPresentation'
@@ -95,17 +94,15 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
       if (selection.result.status === 'resolved') {
         const track = selection.result.track
         const mention = selection.result.track_mention
-        const trackArtistCredits = formatArtistNames(track.artists.map(({ name }) => name))
-        const releaseArtistCredits = formatArtistNames(
-          track.preferred_music_release.artists.map(({ name }) => name),
-        )
+        const artistCredits = formatArtistNames(track.artists.map(({ name }) => name))
+        const albumTitle = getAvailableMusicText(track.preferred_music_release.release_title)
+        const releaseDate = getAvailableMusicText(track.preferred_music_release.release_date)
         const hasDifferentMention = isTrackMentionDifferent(mention, track)
 
         detailContent = (
           <div className="music-detail-grid">
             <MusicArtwork
               key={`track-${track.spotify_track_id}`}
-              status="resolved"
               title={track.track_title}
               artistNames={track.artists.map(({ name }) => name)}
               coverUrl={track.cover_url}
@@ -114,43 +111,31 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
               <h3>{track.track_title}</h3>
               <dl className="music-detail-list">
                 <div>
-                  <dt>Track title</dt>
+                  <dt>Song title</dt>
                   <dd>{track.track_title}</dd>
                 </div>
                 <div>
-                  <dt>Track Artist Credits</dt>
-                  <dd>{trackArtistCredits || 'Artist unavailable'}</dd>
+                  <dt>Artist</dt>
+                  <dd>{artistCredits || 'Artist unavailable'}</dd>
                 </div>
                 {hasDifferentMention ? (
                   <div>
-                    <dt>Mentioned as</dt>
+                    <dt>Interpreted as</dt>
                     <dd>{formatTrackMention(mention)}</dd>
                   </div>
                 ) : null}
-                <div>
-                  <dt>Preferred Music Release</dt>
-                  <dd>{track.preferred_music_release.release_title}</dd>
-                </div>
-                <div>
-                  <dt>Preferred Music Release Artist Credits</dt>
-                  <dd>{releaseArtistCredits || 'Artist unavailable'}</dd>
-                </div>
-                <div>
-                  <dt>Spotify release date</dt>
-                  <dd>{formatMusicReleaseDate(track.preferred_music_release.release_date)}</dd>
-                </div>
-                <div>
-                  <dt>Music Release type</dt>
-                  <dd>{formatMusicReleaseType(track.preferred_music_release.album_type)}</dd>
-                </div>
-                <div>
-                  <dt>Spotify Track ID</dt>
-                  <dd>{track.spotify_track_id}</dd>
-                </div>
-                <div>
-                  <dt>Spotify Album ID</dt>
-                  <dd>{track.preferred_music_release.spotify_album_id}</dd>
-                </div>
+                {albumTitle !== null ? (
+                  <div>
+                    <dt>Album</dt>
+                    <dd>{albumTitle}</dd>
+                  </div>
+                ) : null}
+                {releaseDate !== null ? (
+                  <div>
+                    <dt>Released</dt>
+                    <dd>{releaseDate}</dd>
+                  </div>
+                ) : null}
               </dl>
               <a
                 className="button secondary music-detail-link"
@@ -166,47 +151,41 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
         )
       } else {
         const mention = selection.result.track_mention
-        const interpretedArtistCredits = formatArtistNames(mention.artists)
+        const artistCredits = formatArtistNames(mention.artists)
+        const albumTitle =
+          mention.release_title === null ? null : getAvailableMusicText(mention.release_title)
 
         detailContent = (
-          <div className="music-detail-grid">
-            <MusicArtwork
-              key={`track-${formatTrackMention(mention)}`}
-              status="unresolved"
-              title={mention.track_title}
-              artistNames={mention.artists}
-            />
-            <div className="music-detail-copy">
-              <h3>{mention.track_title}</h3>
-              <dl className="music-detail-list">
+          <div className="music-detail-copy">
+            <h3>{mention.track_title}</h3>
+            <dl className="music-detail-list">
+              <div>
+                <dt>Song title</dt>
+                <dd>{mention.track_title}</dd>
+              </div>
+              {artistCredits.length > 0 ? (
                 <div>
-                  <dt>Track title</dt>
-                  <dd>{mention.track_title}</dd>
+                  <dt>Artist</dt>
+                  <dd>{artistCredits}</dd>
                 </div>
-                {interpretedArtistCredits.length > 0 ? (
-                  <div>
-                    <dt>Artist Credits</dt>
-                    <dd>{interpretedArtistCredits}</dd>
-                  </div>
-                ) : null}
-                {mention.release_title !== null ? (
-                  <div>
-                    <dt>Mentioned Music Release</dt>
-                    <dd>{mention.release_title}</dd>
-                  </div>
-                ) : null}
-                {mention.release_year !== null ? (
-                  <div>
-                    <dt>Mentioned Music Release year</dt>
-                    <dd>{mention.release_year}</dd>
-                  </div>
-                ) : null}
-              </dl>
-              <span className="music-status-badge">Unresolved</span>
-              <p className="music-detail-description">
-                Reelio could not verify this Track Mention against Spotify, so provider metadata and links are unavailable.
-              </p>
-            </div>
+              ) : null}
+              {albumTitle !== null ? (
+                <div>
+                  <dt>Album</dt>
+                  <dd>{albumTitle}</dd>
+                </div>
+              ) : null}
+              {mention.release_year !== null ? (
+                <div>
+                  <dt>Released</dt>
+                  <dd>{mention.release_year}</dd>
+                </div>
+              ) : null}
+            </dl>
+            <span className="result-status-badge">Not verified</span>
+            <p className="music-detail-description">
+              We could not verify this song from the video, so confirmed details are unavailable.
+            </p>
           </div>
         )
       }
@@ -214,13 +193,13 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
       const musicRelease = selection.result.music_release
       const mention = selection.result.music_release_mention
       const artistCredits = formatArtistNames(musicRelease.artists.map(({ name }) => name))
+      const releaseDate = getAvailableMusicText(musicRelease.release_date)
       const hasDifferentMention = isMusicReleaseMentionDifferent(mention, musicRelease)
 
       detailContent = (
         <div className="music-detail-grid">
           <MusicArtwork
             key={`music-release-${musicRelease.spotify_album_id}`}
-            status="resolved"
             title={musicRelease.release_title}
             artistNames={musicRelease.artists.map(({ name }) => name)}
             coverUrl={musicRelease.cover_url}
@@ -229,31 +208,25 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
             <h3>{musicRelease.release_title}</h3>
             <dl className="music-detail-list">
               <div>
-                <dt>Music Release title</dt>
+                <dt>Album</dt>
                 <dd>{musicRelease.release_title}</dd>
               </div>
               <div>
-                <dt>Artist Credits</dt>
+                <dt>Artist</dt>
                 <dd>{artistCredits || 'Artist unavailable'}</dd>
               </div>
               {hasDifferentMention ? (
                 <div>
-                  <dt>Mentioned as</dt>
+                  <dt>Interpreted as</dt>
                   <dd>{formatMusicReleaseMention(mention)}</dd>
                 </div>
               ) : null}
-              <div>
-                <dt>Spotify release date</dt>
-                <dd>{formatMusicReleaseDate(musicRelease.release_date)}</dd>
-              </div>
-              <div>
-                <dt>Music Release type</dt>
-                <dd>{formatMusicReleaseType(musicRelease.album_type)}</dd>
-              </div>
-              <div>
-                <dt>Spotify Album ID</dt>
-                <dd>{musicRelease.spotify_album_id}</dd>
-              </div>
+              {releaseDate !== null ? (
+                <div>
+                  <dt>Released</dt>
+                  <dd>{releaseDate}</dd>
+                </div>
+              ) : null}
             </dl>
             <a
               className="button secondary music-detail-link"
@@ -269,41 +242,33 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
       )
     } else {
       const mention = selection.result.music_release_mention
-      const interpretedArtistCredits = formatArtistNames(mention.artists)
+      const artistCredits = formatArtistNames(mention.artists)
 
       detailContent = (
-        <div className="music-detail-grid">
-          <MusicArtwork
-            key={`music-release-${formatMusicReleaseMention(mention)}`}
-            status="unresolved"
-            title={mention.release_title}
-            artistNames={mention.artists}
-          />
-          <div className="music-detail-copy">
-            <h3>{mention.release_title}</h3>
-            <dl className="music-detail-list">
+        <div className="music-detail-copy">
+          <h3>{mention.release_title}</h3>
+          <dl className="music-detail-list">
+            <div>
+              <dt>Album</dt>
+              <dd>{mention.release_title}</dd>
+            </div>
+            {artistCredits.length > 0 ? (
               <div>
-                <dt>Music Release title</dt>
-                <dd>{mention.release_title}</dd>
+                <dt>Artist</dt>
+                <dd>{artistCredits}</dd>
               </div>
-              {interpretedArtistCredits.length > 0 ? (
-                <div>
-                  <dt>Artist Credits</dt>
-                  <dd>{interpretedArtistCredits}</dd>
-                </div>
-              ) : null}
-              {mention.release_year !== null ? (
-                <div>
-                  <dt>Mentioned Music Release year</dt>
-                  <dd>{mention.release_year}</dd>
-                </div>
-              ) : null}
-            </dl>
-            <span className="music-status-badge">Unresolved</span>
-            <p className="music-detail-description">
-              Reelio could not verify this Music Release Mention against Spotify, so provider metadata and links are unavailable.
-            </p>
-          </div>
+            ) : null}
+            {mention.release_year !== null ? (
+              <div>
+                <dt>Released</dt>
+                <dd>{mention.release_year}</dd>
+              </div>
+            ) : null}
+          </dl>
+          <span className="result-status-badge">Not verified</span>
+          <p className="music-detail-description">
+            We could not verify this album from the video, so confirmed details are unavailable.
+          </p>
         </div>
       )
     }

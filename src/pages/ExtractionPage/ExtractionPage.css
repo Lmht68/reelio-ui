@@ -539,7 +539,6 @@ main {
   min-width: 0;
 }
 
-.music-grid,
 .book-work-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
@@ -550,7 +549,6 @@ main {
   list-style: none;
 }
 
-.music-grid li,
 .book-work-grid li {
   min-width: 0;
 }
@@ -568,7 +566,6 @@ main {
   border-radius: var(--radius);
 }
 
-.music-card,
 .book-work-card {
   display: block;
   width: 100%;
@@ -629,7 +626,6 @@ main {
   background: var(--surface);
 }
 
-.music-cover-fallback-unresolved,
 .book-cover-fallback-unresolved {
   color: var(--warning);
   background: var(--warning-wash);
@@ -742,9 +738,7 @@ main {
 }
 
 .music-card-artists,
-.music-card-provenance,
 .music-card-release,
-.music-card-mention,
 .book-work-card-authors,
 .book-work-card-provenance,
 .book-work-card-edition,
@@ -763,7 +757,6 @@ main {
   -webkit-line-clamp: 2;
 }
 
-.music-card-provenance,
 .music-card-release,
 .book-work-card-provenance,
 .book-work-card-edition {
@@ -772,7 +765,6 @@ main {
   -webkit-line-clamp: 2;
 }
 
-.music-card-mention,
 .book-work-card-mention {
   margin: 0.45rem 0 0;
   color: var(--muted);
@@ -794,7 +786,6 @@ main {
   border-radius: 999px;
 }
 
-.music-status-badge,
 .book-work-status-badge {
   display: inline-flex;
   width: fit-content;
@@ -811,19 +802,17 @@ main {
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .result-card,
-  .music-card,
   .book-work-card {
     transition: transform 150ms ease;
   }
 
   .result-card:hover,
-  .music-card:hover,
   .book-work-card:hover {
     transform: translateY(-3px);
   }
 
   .result-card:hover .poster-frame,
-  .music-card:hover .music-cover-frame,
+  .result-card:hover .music-cover-frame,
   .book-work-card:hover .book-cover-frame {
     border-color: var(--line-strong);
   }
@@ -1061,7 +1050,6 @@ main {
   }
 
   .result-grid,
-  .music-grid,
   .book-work-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

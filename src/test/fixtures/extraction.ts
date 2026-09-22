@@ -119,8 +119,8 @@ export function createMusicExtractionResponse(
     ...response,
     statistics: {
       ...response.statistics,
-      tracks: { n_mentions: 2, n_resolved: 1, n_unresolved: 1 },
-      music_releases: { n_mentions: 2, n_resolved: 1, n_unresolved: 1 },
+      tracks: { n_mentions: 3, n_resolved: 2, n_unresolved: 1 },
+      music_releases: { n_mentions: 4, n_resolved: 3, n_unresolved: 1 },
     },
     results: {
       ...response.results,
@@ -163,6 +163,31 @@ export function createMusicExtractionResponse(
           },
           track: null,
         },
+        {
+          status: 'resolved',
+          track_mention: {
+            track_title: 'Metadata Missing',
+            artists: ['The Empty Fields'],
+            release_title: null,
+            release_year: null,
+          },
+          track: {
+            track_title: 'Metadata Missing',
+            artists: [{ spotify_artist_id: 'spotify-artist-empty-fields', name: 'The Empty Fields' }],
+            spotify_track_id: 'spotify-track-metadata-missing',
+            spotify_url: 'https://open.spotify.com/track/spotify-track-metadata-missing',
+            preferred_music_release: {
+              release_title: '',
+              artists: [],
+              release_date: '',
+              album_type: 'single',
+              spotify_album_id: 'spotify-album-metadata-missing',
+              spotify_url: 'https://open.spotify.com/album/spotify-album-metadata-missing',
+              cover_url: null,
+            },
+            cover_url: null,
+          },
+        },
       ],
       music_releases: [
         {
@@ -180,6 +205,40 @@ export function createMusicExtractionResponse(
             spotify_album_id: 'spotify-album-random-access-memories',
             spotify_url: 'https://open.spotify.com/album/spotify-album-random-access-memories',
             cover_url: 'https://i.scdn.co/image/random-access-memories',
+          },
+        },
+        {
+          status: 'resolved',
+          music_release_mention: {
+            release_title: 'A Single Evening',
+            artists: ['The Night Shift'],
+            release_year: 2022,
+          },
+          music_release: {
+            release_title: 'A Single Evening',
+            artists: [{ spotify_artist_id: 'spotify-artist-night-shift', name: 'The Night Shift' }],
+            release_date: '2022-10-07',
+            album_type: 'single',
+            spotify_album_id: 'spotify-album-single-evening',
+            spotify_url: 'https://open.spotify.com/album/spotify-album-single-evening',
+            cover_url: null,
+          },
+        },
+        {
+          status: 'resolved',
+          music_release_mention: {
+            release_title: 'Collected Nights',
+            artists: ['Various Artists'],
+            release_year: 2020,
+          },
+          music_release: {
+            release_title: 'Collected Nights',
+            artists: [{ spotify_artist_id: 'spotify-artist-various', name: 'Various Artists' }],
+            release_date: '',
+            album_type: 'compilation',
+            spotify_album_id: 'spotify-album-collected-nights',
+            spotify_url: 'https://open.spotify.com/album/spotify-album-collected-nights',
+            cover_url: null,
           },
         },
         {

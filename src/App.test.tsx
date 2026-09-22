@@ -132,7 +132,7 @@ describe('video discovery application', () => {
     expect(screen.getByLabelText('Public video link')).toBeDisabled()
     expect(screen.getByLabelText('Region')).toBeDisabled()
     expect(document.querySelectorAll('.pending-placeholder')).toHaveLength(4)
-    expect(screen.queryByText(/Movies|TV Series|Tracks|Books/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Movies|TV Series|Songs|Books/)).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(await screen.findByText('You can start a new discovery anytime.')).toBeVisible()
@@ -310,8 +310,8 @@ describe('video discovery application', () => {
     expect(categoryHeadings.map(({ textContent }) => textContent)).toEqual([
       'Movies',
       'TV Series',
-      'Tracks',
-      'Music Releases',
+      'Songs',
+      'Albums',
       'Book Works',
     ])
     for (const heading of categoryHeadings) {
@@ -347,7 +347,7 @@ describe('video discovery application', () => {
 
     expect(
       screen.getAllByRole('heading', { level: 2 }).map(({ textContent }) => textContent),
-    ).toEqual(['TV Series', 'Tracks', 'Book Works'])
+    ).toEqual(['TV Series', 'Songs', 'Book Works'])
   })
 
   it('should render resolved and unverified Movies and TV Series when completed results contain Screen Works', async () => {
@@ -477,169 +477,167 @@ describe('video discovery application', () => {
     expect(within(unverifiedDialog).queryByRole('link', { name: /TMDB/ })).not.toBeInTheDocument()
   })
 
-  it('should render Spotify-authoritative and unresolved cards when a completed Extraction contains music Results', async () => {
+  it('should render Songs and Albums without provider copy when a completed Extraction contains music Results', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createMusicExtractionResponse()))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    await screen.findByRole('heading', { name: 'Tracks' })
-    const resolvedTrackCard = screen.getByRole('button', {
-      name: 'Open Spotify Track details for One More Time (2011 Remaster) by DAFT PUNK, Romanthony',
+    const songsSection = await screen.findByRole('region', { name: 'Songs' })
+    const albumsSection = screen.getByRole('region', { name: 'Albums' })
+    const resolvedSongCard = within(songsSection).getByRole('button', {
+      name: 'Open details for One More Time (2011 Remaster)',
     })
-    const unresolvedTrackCard = screen.getByRole('button', {
-      name: 'Open unresolved Track Mention details for Unknown Track by Unknown Artist',
+    const metadataMissingSongCard = within(songsSection).getByRole('button', {
+      name: 'Open details for Metadata Missing',
     })
-    const resolvedMusicReleaseCard = screen.getByRole('button', {
-      name: 'Open Spotify Music Release details for Random Access Memories by Daft Punk',
+    const unverifiedSongCard = within(songsSection).getByRole('button', {
+      name: 'Open details for Unknown Track',
     })
-    const unresolvedMusicReleaseCard = screen.getByRole('button', {
-      name: 'Open unresolved Music Release Mention details for Unknown Release by Unknown Artist',
+    const resolvedAlbumCard = within(albumsSection).getByRole('button', {
+      name: 'Open details for Random Access Memories',
+    })
+    const singleAlbumCard = within(albumsSection).getByRole('button', {
+      name: 'Open details for A Single Evening',
+    })
+    const compilationAlbumCard = within(albumsSection).getByRole('button', {
+      name: 'Open details for Collected Nights',
+    })
+    const unverifiedAlbumCard = within(albumsSection).getByRole('button', {
+      name: 'Open details for Unknown Release',
     })
 
-    expect(resolvedTrackCard).toHaveTextContent('One More Time (2011 Remaster)')
-    expect(resolvedTrackCard).toHaveTextContent('DAFT PUNK, Romanthony')
-    expect(resolvedTrackCard).toHaveTextContent('Spotify Track')
-    expect(resolvedTrackCard).toHaveTextContent(
-      'Preferred release: Discovery (Deluxe Edition) · 2001-02-26',
-    )
-    expect(resolvedTrackCard).toHaveTextContent(
-      'Mentioned as One More Time by Daft Punk, Romanthony · Discovery (2001)',
-    )
+    expect(resolvedSongCard).toHaveTextContent('One More Time (2011 Remaster)')
+    expect(resolvedSongCard).toHaveTextContent('DAFT PUNK, Romanthony')
+    expect(resolvedSongCard).toHaveTextContent('Discovery (Deluxe Edition)')
     expect(
-      within(resolvedTrackCard).getByRole('img', {
+      within(resolvedSongCard).getByRole('img', {
         name: 'Cover unavailable for One More Time (2011 Remaster) by DAFT PUNK, Romanthony',
       }),
     ).toBeVisible()
-    expect(resolvedMusicReleaseCard).toHaveTextContent('Random Access Memories')
-    expect(resolvedMusicReleaseCard).toHaveTextContent('Daft Punk')
-    expect(resolvedMusicReleaseCard).toHaveTextContent('Spotify Album · 2013-05-17')
-    expect(within(resolvedMusicReleaseCard).queryByText(/Mentioned as/)).not.toBeInTheDocument()
+    expect(within(metadataMissingSongCard).queryByText(/Released/)).not.toBeInTheDocument()
+    expect(within(resolvedSongCard).queryByText(/Spotify|Preferred release|Mentioned as/)).not.toBeInTheDocument()
 
-    const musicReleaseCover = within(resolvedMusicReleaseCard).getByRole('img', {
+    expect(within(resolvedAlbumCard).queryByText('2013-05-17')).not.toBeInTheDocument()
+    expect(within(singleAlbumCard).queryByText('2022-10-07')).not.toBeInTheDocument()
+    expect(within(compilationAlbumCard).queryByText(/\d{4}-\d{2}-\d{2}/)).not.toBeInTheDocument()
+    expect(within(resolvedAlbumCard).queryByText(/Spotify|Album type|Mentioned as/)).not.toBeInTheDocument()
+    expect(within(albumsSection).getAllByRole('button')).toHaveLength(4)
+
+    const musicReleaseCover = within(resolvedAlbumCard).getByRole('img', {
       name: 'Cover for Random Access Memories by Daft Punk',
     })
     fireEvent.error(musicReleaseCover)
     expect(
-      within(resolvedMusicReleaseCard).getByRole('img', {
+      within(resolvedAlbumCard).getByRole('img', {
         name: 'Cover unavailable for Random Access Memories by Daft Punk',
       }),
     ).toBeVisible()
 
-    expect(unresolvedTrackCard).toHaveTextContent('Unknown Track')
-    expect(unresolvedTrackCard).toHaveTextContent('Unknown Artist')
-    expect(within(unresolvedTrackCard).getAllByText('Unresolved')).toHaveLength(2)
-    expect(within(unresolvedTrackCard).queryByText('Spotify Track')).not.toBeInTheDocument()
-    expect(within(unresolvedTrackCard).queryByRole('link')).not.toBeInTheDocument()
-    expect(unresolvedMusicReleaseCard).toHaveTextContent('Unknown Release')
-    expect(unresolvedMusicReleaseCard).toHaveTextContent('Unknown Artist')
-    expect(unresolvedMusicReleaseCard).toHaveTextContent('2024')
-    expect(within(unresolvedMusicReleaseCard).getAllByText('Unresolved')).toHaveLength(2)
-    expect(within(unresolvedMusicReleaseCard).queryByText(/Spotify/)).not.toBeInTheDocument()
-    expect(within(unresolvedMusicReleaseCard).queryByRole('link')).not.toBeInTheDocument()
-    expect(screen.queryByText(/Result Statistics/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
+    expect(unverifiedSongCard).toHaveTextContent('Unknown Track')
+    expect(unverifiedSongCard).toHaveTextContent('Unknown Artist')
+    expect(unverifiedSongCard).toHaveTextContent('Not verified')
+    expect(within(unverifiedSongCard).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(unverifiedSongCard).queryByText(/Spotify|Unresolved/)).not.toBeInTheDocument()
+    expect(unverifiedAlbumCard).toHaveTextContent('Unknown Release')
+    expect(unverifiedAlbumCard).not.toHaveTextContent('2024')
+    expect(unverifiedAlbumCard).toHaveTextContent('Not verified')
+    expect(within(unverifiedAlbumCard).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(unverifiedAlbumCard).queryByText(/Spotify|Unresolved/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Result Statistics|n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
-  it('should expose only status-appropriate music details when a Result card is opened', async () => {
+  it('should expose plain music details and restore focus when a Result card is opened', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createMusicExtractionResponse()))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    const resolvedTrackCard = await screen.findByRole('button', {
-      name: 'Open Spotify Track details for One More Time (2011 Remaster) by DAFT PUNK, Romanthony',
+    const resolvedSongCard = await screen.findByRole('button', {
+      name: 'Open details for One More Time (2011 Remaster)',
     })
 
-    resolvedTrackCard.focus()
+    resolvedSongCard.focus()
     await user.keyboard('{Enter}')
-    const resolvedTrackDialog = await screen.findByRole('dialog', {
+    const resolvedSongDialog = await screen.findByRole('dialog', {
       name: 'One More Time (2011 Remaster) details',
     })
-    const trackSpotifyLink = within(resolvedTrackDialog).getByRole('link', {
+    const songSpotifyLink = within(resolvedSongDialog).getByRole('link', {
       name: 'Open One More Time (2011 Remaster) on Spotify, opens in a new tab',
     })
 
-    expect(within(resolvedTrackDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
-    expect(resolvedTrackDialog).toHaveTextContent('DAFT PUNK, Romanthony')
+    expect(within(resolvedSongDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(resolvedSongDialog).getByText('Song title')).toBeVisible()
+    expect(within(resolvedSongDialog).getByText('Artist')).toBeVisible()
+    expect(within(resolvedSongDialog).getByText('Album')).toBeVisible()
+    expect(within(resolvedSongDialog).getByText('Released')).toBeVisible()
+    expect(within(resolvedSongDialog).getByText('Interpreted as')).toBeVisible()
     expect(
-      within(resolvedTrackDialog).getByText(
+      within(resolvedSongDialog).getByText(
         'One More Time by Daft Punk, Romanthony · Discovery (2001)',
       ),
     ).toBeVisible()
-    expect(within(resolvedTrackDialog).getByText('Discovery (Deluxe Edition)')).toBeVisible()
-    expect(within(resolvedTrackDialog).getByText('2001-02-26')).toBeVisible()
-    expect(within(resolvedTrackDialog).getByText('Album')).toBeVisible()
-    expect(within(resolvedTrackDialog).getByText('spotify-track-one-more-time')).toBeVisible()
-    expect(within(resolvedTrackDialog).getByText('spotify-album-discovery-deluxe')).toBeVisible()
-    expect(trackSpotifyLink).toHaveTextContent('Open on Spotify')
-    expect(trackSpotifyLink).toHaveAttribute(
+    expect(within(resolvedSongDialog).queryByText(/Spotify (Track|Album) ID|Preferred Music Release|Music Release type/)).not.toBeInTheDocument()
+    expect(songSpotifyLink).toHaveTextContent('Open on Spotify')
+    expect(songSpotifyLink).toHaveAttribute(
       'href',
       'https://open.spotify.com/track/spotify-track-one-more-time',
     )
-    expect(trackSpotifyLink).toHaveAttribute('target', '_blank')
-    expect(trackSpotifyLink).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(songSpotifyLink).toHaveAttribute('target', '_blank')
+    expect(songSpotifyLink).toHaveAttribute('rel', 'noopener noreferrer')
 
     await user.keyboard('{Escape}')
-    expect(
-      screen.queryByRole('dialog', { name: 'One More Time (2011 Remaster) details' }),
-    ).not.toBeInTheDocument()
-    expect(resolvedTrackCard).toHaveFocus()
+    expect(resolvedSongCard).toHaveFocus()
 
-    const resolvedMusicReleaseCard = screen.getByRole('button', {
-      name: 'Open Spotify Music Release details for Random Access Memories by Daft Punk',
+    const resolvedAlbumCard = screen.getByRole('button', {
+      name: 'Open details for Random Access Memories',
     })
-    await user.click(resolvedMusicReleaseCard)
-    const resolvedMusicReleaseDialog = await screen.findByRole('dialog', {
+    await user.click(resolvedAlbumCard)
+    const resolvedAlbumDialog = await screen.findByRole('dialog', {
       name: 'Random Access Memories details',
     })
-    const musicReleaseSpotifyLink = within(resolvedMusicReleaseDialog).getByRole('link', {
+    const albumSpotifyLink = within(resolvedAlbumDialog).getByRole('link', {
       name: 'Open Random Access Memories on Spotify, opens in a new tab',
     })
 
-    expect(within(resolvedMusicReleaseDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
-    expect(within(resolvedMusicReleaseDialog).getByText('Daft Punk')).toBeVisible()
-    expect(within(resolvedMusicReleaseDialog).getByText('2013-05-17')).toBeVisible()
-    expect(within(resolvedMusicReleaseDialog).getByText('Album')).toBeVisible()
-    expect(
-      within(resolvedMusicReleaseDialog).getByText('spotify-album-random-access-memories'),
-    ).toBeVisible()
-    expect(musicReleaseSpotifyLink).toHaveAttribute(
+    expect(within(resolvedAlbumDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(resolvedAlbumDialog).getByText('Album')).toBeVisible()
+    expect(within(resolvedAlbumDialog).getByText('Artist')).toBeVisible()
+    expect(within(resolvedAlbumDialog).getByText('Released')).toBeVisible()
+    expect(within(resolvedAlbumDialog).queryByText('Interpreted as')).not.toBeInTheDocument()
+    expect(within(resolvedAlbumDialog).queryByText(/Spotify Album ID|Music Release type/)).not.toBeInTheDocument()
+    expect(albumSpotifyLink).toHaveAttribute(
       'href',
       'https://open.spotify.com/album/spotify-album-random-access-memories',
     )
-    expect(musicReleaseSpotifyLink).toHaveAttribute('target', '_blank')
-    expect(musicReleaseSpotifyLink).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(albumSpotifyLink).toHaveAttribute('target', '_blank')
+    expect(albumSpotifyLink).toHaveAttribute('rel', 'noopener noreferrer')
 
-    await user.click(within(resolvedMusicReleaseDialog).getByRole('button', { name: 'Close details' }))
-    expect(
-      screen.queryByRole('dialog', { name: 'Random Access Memories details' }),
-    ).not.toBeInTheDocument()
-    expect(resolvedMusicReleaseCard).toHaveFocus()
+    await user.click(within(resolvedAlbumDialog).getByRole('button', { name: 'Close details' }))
+    expect(resolvedAlbumCard).toHaveFocus()
 
-    const unresolvedTrackCard = screen.getByRole('button', {
-      name: 'Open unresolved Track Mention details for Unknown Track by Unknown Artist',
-    })
-    unresolvedTrackCard.focus()
+    const unverifiedSongCard = screen.getByRole('button', { name: 'Open details for Unknown Track' })
+    unverifiedSongCard.focus()
     await user.keyboard('{Enter}')
-    const unresolvedTrackDialog = await screen.findByRole('dialog', { name: 'Unknown Track details' })
+    const unverifiedSongDialog = await screen.findByRole('dialog', {
+      name: 'Unknown Track details',
+    })
 
-    expect(within(unresolvedTrackDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(unverifiedSongDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(unverifiedSongDialog).getByText('Not verified')).toBeVisible()
+    expect(within(unverifiedSongDialog).getByText('Song title')).toBeVisible()
+    expect(within(unverifiedSongDialog).getByText('Artist')).toBeVisible()
     expect(
-      within(unresolvedTrackDialog).getByText(
-        'Reelio could not verify this Track Mention against Spotify, so provider metadata and links are unavailable.',
+      within(unverifiedSongDialog).getByText(
+        'We could not verify this song from the video, so confirmed details are unavailable.',
       ),
     ).toBeVisible()
-    expect(
-      within(unresolvedTrackDialog).getByRole('img', {
-        name: 'No verified cover for Unknown Track by Unknown Artist',
-      }),
-    ).toBeVisible()
-    expect(within(unresolvedTrackDialog).queryByText('Spotify Track ID')).not.toBeInTheDocument()
-    expect(within(unresolvedTrackDialog).queryByText('Spotify Album ID')).not.toBeInTheDocument()
-    expect(within(unresolvedTrackDialog).queryByText('Preferred Music Release')).not.toBeInTheDocument()
-    expect(within(unresolvedTrackDialog).queryByRole('img', { name: /Cover for/ })).not.toBeInTheDocument()
-    expect(within(unresolvedTrackDialog).queryByRole('link', { name: /Spotify/ })).not.toBeInTheDocument()
+    expect(within(unverifiedSongDialog).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(unverifiedSongDialog).queryByText(/Spotify|Interpreted as/)).not.toBeInTheDocument()
+    expect(within(unverifiedSongDialog).queryByRole('link')).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(unverifiedSongCard).toHaveFocus()
   })
 
   it('should render Open Library and unresolved Book Work cards when a completed Extraction contains Book Work Results', async () => {

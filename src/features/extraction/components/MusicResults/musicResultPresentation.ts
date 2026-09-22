@@ -9,19 +9,10 @@ export function formatArtistNames(names: ReadonlyArray<string>): string {
   return names.join(', ')
 }
 
-export function formatMusicReleaseType(albumType: MusicRelease['album_type']): string {
-  switch (albumType) {
-    case 'album':
-      return 'Album'
-    case 'single':
-      return 'Single'
-    case 'compilation':
-      return 'Compilation'
-  }
-}
+export function getAvailableMusicText(value: string): string | null {
+  const trimmedValue = value.trim()
 
-export function formatMusicReleaseDate(releaseDate: string): string {
-  return releaseDate.trim().length > 0 ? releaseDate : 'Unavailable'
+  return trimmedValue.length > 0 ? trimmedValue : null
 }
 
 export function formatTrackMention(mention: TrackMention): string {
