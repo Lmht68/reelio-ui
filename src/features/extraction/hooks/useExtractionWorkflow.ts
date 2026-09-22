@@ -105,36 +105,36 @@ function getServiceRecovery(code: ExtractionFailureCode): Pick<RecoveryErrorStat
   switch (code) {
     case 'source_unavailable':
       return {
-        title: 'This Source is unavailable',
-        message: 'Make sure it is public, check the link, or choose another Source.',
+        title: 'This video is unavailable',
+        message: 'Make sure it is public, check the link, or choose another video.',
       }
     case 'duration_limit_exceeded':
       return {
-        title: 'This Source is too long',
+        title: 'This video is too long',
         message: 'Choose a shorter public video.',
       }
     case 'interpretation_input_too_large':
       return {
-        title: 'This Source contains more material than Reelio can process',
-        message: 'Choose another Source.',
+        title: 'This video has more material than Reelio can process',
+        message: 'Choose another video.',
       }
     case 'metadata_provider_failed':
     case 'transcription_failed':
       return {
-        title: "Reelio couldn't read this Source",
-        message: 'Try again later or choose another Source.',
+        title: "Reelio couldn't read this video",
+        message: 'Try again later or choose another video.',
       }
     case 'mention_interpretation_failed':
     case 'invalid_llm_response':
     case 'enrichment_failed':
     case 'catalog_provider_failed':
       return {
-        title: "Reelio couldn't finish this Extraction",
-        message: 'Try again. If it keeps happening, choose another Source.',
+        title: "Reelio couldn't finish checking this video",
+        message: 'Try again. If it keeps happening, choose another video.',
       }
     case 'pipeline_timeout':
       return {
-        title: 'This Extraction took too long',
+        title: 'Checking this video took too long',
         message: 'Try again. Your public video link is still here.',
       }
     default:
@@ -229,7 +229,7 @@ export function useExtractionWorkflow(): ExtractionWorkflow {
                 phase: 'validation-error',
                 url,
                 market,
-                message: 'Check the public video link and Effective Market, then try again.',
+                message: 'Check the public video link and Region, then try again.',
                 focusTarget: 'status',
               })
               return
@@ -284,7 +284,7 @@ export function useExtractionWorkflow(): ExtractionWorkflow {
       url: state.url,
       market: state.market,
       title: 'Stopped waiting',
-      message: 'You stopped waiting in this browser. The Extraction may still be running on the server.',
+      message: 'You stopped waiting in this browser. Reelio may still be checking the video on the server.',
     })
   }, [state])
 

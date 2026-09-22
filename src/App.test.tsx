@@ -23,7 +23,7 @@ async function submitPublicVideo(user: UserEvent, url: string) {
   const input = screen.getByLabelText('Public video link')
   await user.clear(input)
   await user.type(input, url)
-  await user.click(screen.getByRole('button', { name: 'Find works' }))
+  await user.click(screen.getByRole('button', { name: 'Discover' }))
 }
 
 beforeEach(() => {
@@ -31,30 +31,30 @@ beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
 })
 
-describe('Source Extraction application', () => {
-  it('rejects blank, malformed, and overlong URLs without calling the API', async () => {
+describe('video discovery application', () => {
+  it('should reject blank, malformed, and overlong URLs without calling the API', async () => {
     const user = userEvent.setup()
     render(<App />)
     const input = screen.getByLabelText('Public video link')
 
-    await user.click(screen.getByRole('button', { name: 'Find works' }))
+    await user.click(screen.getByRole('button', { name: 'Discover' }))
     expect(await screen.findByText('Enter a public video link.')).toBeVisible()
     expect(input).toHaveFocus()
 
     await user.type(input, 'not a public URL')
-    await user.click(screen.getByRole('button', { name: 'Find works' }))
+    await user.click(screen.getByRole('button', { name: 'Discover' }))
     expect(await screen.findByText('Enter a valid public video link.')).toBeVisible()
     expect(input).toHaveFocus()
 
     fireEvent.change(input, { target: { value: `https://example.com/${'a'.repeat(2049)}` } })
-    await user.click(screen.getByRole('button', { name: 'Find works' }))
+    await user.click(screen.getByRole('button', { name: 'Discover' }))
     expect(
       await screen.findByText('Keep the public video link under 2,048 characters.'),
     ).toBeVisible()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('accepts supported platform URLs client-side and sends each trimmed same-origin request', async () => {
+  it('should accept every supported platform URL and send each trimmed request when submitted', async () => {
     const user = userEvent.setup()
     render(<App />)
     const urls = [
@@ -76,38 +76,48 @@ describe('Source Extraction application', () => {
       expect(request.headers).toEqual({ 'Content-Type': 'application/json' })
       expect(JSON.parse(String(request.body))).toEqual({ url, market: 'US' })
 
-      await user.click(screen.getByRole('button', { name: 'Check another Source' }))
+      await user.click(screen.getByRole('button', { name: 'Check another video' }))
     }
   })
 
-  it('keeps the named Effective Market in one mount and resets it after remount', async () => {
+  it('should preserve Region in page memory and reset it after remount when checking another video', async () => {
     const user = userEvent.setup()
     const rendered = render(<App />)
 
+    expect(screen.getByRole('heading', { name: 'Discover movies, music & more' })).toBeVisible()
+    expect(
+      screen.getByText('Find the movies, shows, songs, and books hiding in your favorite videos'),
+    ).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Discover' })).toBeVisible()
+    expect(screen.getByText('Advanced options').closest('details')).not.toHaveAttribute('open')
+
     await user.click(screen.getByText('Advanced options'))
-    const marketSelect = screen.getByLabelText('Effective Market')
+    expect(screen.getByText('Advanced options').closest('details')).toHaveAttribute('open')
+    const marketSelect = screen.getByLabelText('Region')
     expect(marketSelect).toHaveValue('US')
     expect(marketSelect).toHaveDisplayValue('United States')
 
     await user.selectOptions(marketSelect, 'JP')
     fetchMock.mockResolvedValueOnce(jsonResponse(createEmptyExtractionResponse({ market: 'JP' })))
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    expect(await screen.findByText('Effective Market: Japan')).toBeVisible()
+    expect(await screen.findByText('Region: Japan')).toBeVisible()
     expect(JSON.parse(String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body))).toEqual({
       url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       market: 'JP',
     })
 
-    await user.click(screen.getByRole('button', { name: 'Check another Source' }))
-    expect(screen.getByLabelText('Effective Market')).toHaveValue('JP')
+    await user.click(screen.getByRole('button', { name: 'Check another video' }))
+    expect(screen.getByLabelText('Region')).toHaveValue('JP')
+    expect(screen.getByLabelText('Public video link')).toHaveValue('')
     expect(screen.getByLabelText('Public video link')).toHaveFocus()
+    expect(screen.getByText('Advanced options').closest('details')).not.toHaveAttribute('open')
 
     rendered.unmount()
     render(<App />)
-    expect(screen.getByLabelText('Effective Market')).toHaveValue('US')
+    expect(screen.getByLabelText('Region')).toHaveValue('US')
   })
 
-  it('keeps a pending request honest, aborts only the browser wait, and retries freshly', async () => {
+  it('should keep cancellation honest and retry freshly when a request remains pending', async () => {
     const user = userEvent.setup()
     const signals: AbortSignal[] = []
     fetchMock.mockImplementation((_: string, request: RequestInit) => {
@@ -117,15 +127,15 @@ describe('Source Extraction application', () => {
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    expect(await screen.findByRole('heading', { name: 'Checking this public video...' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Find works' })).toBeDisabled()
+    expect(await screen.findByRole('heading', { name: 'Checking this video...' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Discover' })).toBeDisabled()
     expect(screen.getByLabelText('Public video link')).toBeDisabled()
-    expect(screen.getByLabelText('Effective Market')).toBeDisabled()
+    expect(screen.getByLabelText('Region')).toBeDisabled()
     expect(document.querySelectorAll('.pending-placeholder')).toHaveLength(4)
     expect(screen.queryByText(/Movies|TV Series|Tracks|Books/)).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Stop waiting' }))
-    expect(await screen.findByText('You stopped waiting in this browser. The Extraction may still be running on the server.')).toBeVisible()
+    expect(await screen.findByText('You stopped waiting in this browser. Reelio may still be checking the video on the server.')).toBeVisible()
     expect(signals[0]?.aborted).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(screen.getByLabelText('Public video link')).toBeEnabled()
@@ -138,39 +148,39 @@ describe('Source Extraction application', () => {
     expect(fetchMock.mock.calls.every(([path]) => path === '/api/extractions')).toBe(true)
   })
 
-  it('renders each known recovery branch without exposing backend details', async () => {
+  it('should render plain-language recovery actions without backend details when known failures occur', async () => {
     const user = userEvent.setup()
     render(<App />)
     const cases = [
       [
         404,
         'source_unavailable',
-        'This Source is unavailable',
-        'Make sure it is public, check the link, or choose another Source.',
+        'This video is unavailable',
+        'Make sure it is public, check the link, or choose another video.',
       ],
-      [413, 'duration_limit_exceeded', 'This Source is too long', 'Choose a shorter public video.'],
+      [413, 'duration_limit_exceeded', 'This video is too long', 'Choose a shorter public video.'],
       [
         413,
         'interpretation_input_too_large',
-        'This Source contains more material than Reelio can process',
-        'Choose another Source.',
+        'This video has more material than Reelio can process',
+        'Choose another video.',
       ],
       [
         502,
         'metadata_provider_failed',
-        "Reelio couldn't read this Source",
-        'Try again later or choose another Source.',
+        "Reelio couldn't read this video",
+        'Try again later or choose another video.',
       ],
       [
         502,
         'mention_interpretation_failed',
-        "Reelio couldn't finish this Extraction",
-        'Try again. If it keeps happening, choose another Source.',
+        "Reelio couldn't finish checking this video",
+        'Try again. If it keeps happening, choose another video.',
       ],
       [
         504,
         'pipeline_timeout',
-        'This Extraction took too long',
+        'Checking this video took too long',
         'Try again. Your public video link is still here.',
       ],
     ] as const
@@ -178,7 +188,7 @@ describe('Source Extraction application', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ detail: ['ignored'] }, 422))
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     expect(
-      await screen.findByText('Check the public video link and Effective Market, then try again.'),
+      await screen.findByText('Check the public video link and Region, then try again.'),
     ).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Check your submission' })).toHaveFocus()
 
@@ -194,14 +204,14 @@ describe('Source Extraction application', () => {
       expect(screen.queryByText(code)).not.toBeInTheDocument()
       expect(screen.queryByText('Sensitive backend detail.')).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Try again' })).toBeVisible()
-      expect(screen.getByRole('button', { name: 'Choose another Source' })).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Choose another video' })).toBeVisible()
 
-      await user.click(screen.getByRole('button', { name: 'Choose another Source' }))
+      await user.click(screen.getByRole('button', { name: 'Choose another video' }))
       expect(screen.getByLabelText('Public video link')).toHaveFocus()
     }
   })
 
-  it('converges network, unknown, malformed JSON, and malformed success failures safely', async () => {
+  it('should recover safely when network and malformed response failures occur', async () => {
     const user = userEvent.setup()
     render(<App />)
     const failures: Array<Error | Response> = [
@@ -224,11 +234,11 @@ describe('Source Extraction application', () => {
       expect(screen.queryByText('Sensitive backend detail.')).not.toBeInTheDocument()
       expect(screen.queryByText('new_provider_failure')).not.toBeInTheDocument()
 
-      await user.click(screen.getByRole('button', { name: 'Choose another Source' }))
+      await user.click(screen.getByRole('button', { name: 'Choose another video' }))
     }
   })
 
-  it('shows canonical empty context without result statistics and focuses its result heading', async () => {
+  it('should show canonical video context without statistics when results are empty', async () => {
     const user = userEvent.setup()
     const canonicalUrl = 'https://www.tiktok.com/@canonical/video/1234567890123456789'
     fetchMock.mockResolvedValueOnce(
@@ -250,27 +260,52 @@ describe('Source Extraction application', () => {
 
     await submitPublicVideo(user, 'https://www.tiktok.com/@alias/video/1234567890123456789')
     const emptyHeading = await screen.findByRole('heading', { name: 'No results found' })
-    const sourceRegion = screen.getByRole('region', { name: 'Source' })
+    const videoRegion = screen.getByRole('region', { name: 'Video' })
     const canonicalLink = screen.getByRole('link', { name: /Canonical returned Source on TikTok/ })
     expect(canonicalLink).toHaveAttribute('href', canonicalUrl)
     expect(canonicalLink).toHaveAttribute('target', '_blank')
     expect(screen.getByText(/TikTok · Channel unavailable · 1 hr 1 min 1 sec/)).toBeVisible()
-    expect(screen.getByText('Effective Market: Japan')).toBeVisible()
+    expect(screen.getByText('Region: Japan')).toBeVisible()
     expect(emptyHeading).toHaveFocus()
     expect(screen.queryByText('Description that must not be rendered')).not.toBeInTheDocument()
-    expect(within(sourceRegion).getByRole('button', { name: 'View Transcript' })).toBeVisible()
-    expect(within(sourceRegion).getByRole('button', { name: 'Check another Source' })).toBeVisible()
+    expect(within(videoRegion).getByRole('button', { name: 'View Transcript' })).toBeVisible()
+    expect(within(videoRegion).getByRole('button', { name: 'Check another video' })).toBeVisible()
     expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
-  it('should render every Result category in fixed order without statistics when an Extraction completes with all five categories', async () => {
+  it('should use a plain platform-video fallback when the provider title is absent', async () => {
+    const user = userEvent.setup()
+    const canonicalUrl = 'https://x.com/reelio/status/123456789'
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        createEmptyExtractionResponse({
+          source: {
+            platform: 'x',
+            url: canonicalUrl,
+            title: '',
+          },
+        }),
+      ),
+    )
+    render(<App />)
+
+    await submitPublicVideo(user, canonicalUrl)
+    const videoLink = await screen.findByRole('link', {
+      name: 'X video on X, opens in a new tab',
+    })
+
+    expect(videoLink).toHaveTextContent('X video')
+    expect(videoLink).toHaveAttribute('href', canonicalUrl)
+  })
+
+  it('should announce and focus Results with associated level-two category headings when results complete', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createBookWorkExtractionResponse()))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    await screen.findByRole('heading', { name: 'Extraction complete' })
-    const categoryHeadings = screen.getAllByRole('heading', { level: 3 })
+    const resultsRegion = await screen.findByRole('region', { name: 'Results' })
+    const categoryHeadings = screen.getAllByRole('heading', { level: 2 })
 
     expect(categoryHeadings.map(({ textContent }) => textContent)).toEqual([
       'Movies',
@@ -285,15 +320,14 @@ describe('Source Extraction application', () => {
       expect(within(region).getByRole('list')).toBeVisible()
     }
     expect(screen.getByRole('link', { name: 'Skip to main content' })).toHaveAttribute('href', '#main')
-    expect(screen.getByRole('region', { name: 'Extraction complete' })).toHaveAttribute(
-      'aria-labelledby',
-      'extraction-completed-heading',
-    )
+    expect(screen.getByRole('status')).toHaveTextContent('Results ready')
+    expect(resultsRegion).toHaveFocus()
+    expect(screen.queryByRole('heading', { name: 'Extraction complete' })).not.toBeInTheDocument()
     expect(screen.queryByText('Result Statistics')).not.toBeInTheDocument()
     expect(screen.queryByText(/n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
-  it('should omit empty Result categories while preserving order when an Extraction completes with partial results', async () => {
+  it('should omit empty result categories while preserving order when results are partial', async () => {
     const user = userEvent.setup()
     const response = createBookWorkExtractionResponse()
     fetchMock.mockResolvedValueOnce(
@@ -309,20 +343,20 @@ describe('Source Extraction application', () => {
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    await screen.findByRole('heading', { name: 'Extraction complete' })
+    await screen.findByRole('region', { name: 'Results' })
 
     expect(
-      screen.getAllByRole('heading', { level: 3 }).map(({ textContent }) => textContent),
+      screen.getAllByRole('heading', { level: 2 }).map(({ textContent }) => textContent),
     ).toEqual(['TV Series', 'Tracks', 'Book Works'])
   })
 
-  it('should render resolved and unresolved Movies and TV Series when a completed Extraction contains Screen Work Results', async () => {
+  it('should render resolved and unresolved Movies and TV Series when completed results contain Screen Works', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createScreenWorkExtractionResponse()))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    const completedHeading = await screen.findByRole('heading', { name: 'Extraction complete' })
+    const resultsRegion = await screen.findByRole('region', { name: 'Results' })
     const moviesHeading = screen.getByRole('heading', { name: 'Movies' })
     const tvSeriesHeading = screen.getByRole('heading', { name: 'TV Series' })
     const resolvedMovieCard = screen.getByRole('button', {
@@ -334,7 +368,7 @@ describe('Source Extraction application', () => {
       name: 'Open details for Unknown TV Series',
     })
 
-    expect(completedHeading).toHaveFocus()
+    expect(resultsRegion).toHaveFocus()
     expect(screen.getAllByRole('heading').indexOf(moviesHeading)).toBeLessThan(
       screen.getAllByRole('heading').indexOf(tvSeriesHeading),
     )
@@ -728,7 +762,7 @@ describe('Source Extraction application', () => {
     expect(within(unresolvedBookDialog).queryByRole('link', { name: /Open Library/ })).not.toBeInTheDocument()
   })
 
-  it('shows complete Transcript provenance and restores its trigger focus after closing', async () => {
+  it('should preserve Transcript context and trigger focus when pointer and keyboard actions close it', async () => {
     const user = userEvent.setup()
     const transcriptText =
       'First paragraph preserves the phrase marigold circuit.\n\nSecond paragraph preserves the phrase cobalt archive.'
@@ -765,6 +799,12 @@ describe('Source Extraction application', () => {
     expect(transcriptTrigger).toHaveFocus()
 
     transcriptTrigger.focus()
+    await user.keyboard('{Enter}')
+    const backdropDialog = await screen.findByRole('dialog', { name: 'Transcript' })
+    fireEvent.click(backdropDialog)
+    expect(screen.queryByRole('dialog', { name: 'Transcript' })).not.toBeInTheDocument()
+    expect(transcriptTrigger).toHaveFocus()
+
     await user.keyboard('{Enter}')
     const reopenedDialog = await screen.findByRole('dialog', { name: 'Transcript' })
     expect(within(reopenedDialog).getByRole('button', { name: 'Close Transcript' })).toHaveFocus()

@@ -31,7 +31,7 @@ export function ScreenWorkResults({ movies, tvSeries }: ScreenWorkResultsProps) 
     <div className="screen-work-results">
       {movies.length > 0 ? (
         <section className="screen-work-results-section" aria-labelledby="movies-heading">
-          <h3 id="movies-heading">Movies</h3>
+          <h2 id="movies-heading">Movies</h2>
           <ul className="screen-work-grid">
             {movies.map((result) => (
               <li
@@ -53,7 +53,7 @@ export function ScreenWorkResults({ movies, tvSeries }: ScreenWorkResultsProps) 
       ) : null}
       {tvSeries.length > 0 ? (
         <section className="screen-work-results-section" aria-labelledby="tv-series-heading">
-          <h3 id="tv-series-heading">TV Series</h3>
+          <h2 id="tv-series-heading">TV Series</h2>
           <ul className="screen-work-grid">
             {tvSeries.map((result) => (
               <li

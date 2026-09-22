@@ -41,24 +41,34 @@ export function ExtractionForm({
         onSubmit()
       }}
     >
-      <h1>Find the works behind a public video</h1>
+      <div className="form-heading">
+        <h1>Discover movies, music &amp; more</h1>
+        <p className="form-intro">
+          Find the movies, shows, songs, and books hiding in your favorite videos
+        </p>
+      </div>
       <div className="source-field">
         <label htmlFor="public-video-link">Public video link</label>
-        <input
-          ref={urlInputRef}
-          id="public-video-link"
-          name="public-video-link"
-          type="url"
-          inputMode="url"
-          autoComplete="url"
-          maxLength={2048}
-          required
-          value={url}
-          disabled={disabled}
-          aria-invalid={validationMessage === undefined ? undefined : true}
-          aria-describedby={describedBy}
-          onChange={(event) => onUrlChange(event.target.value)}
-        />
+        <div className="source-action-row">
+          <input
+            ref={urlInputRef}
+            id="public-video-link"
+            name="public-video-link"
+            type="url"
+            inputMode="url"
+            autoComplete="url"
+            maxLength={2048}
+            required
+            value={url}
+            disabled={disabled}
+            aria-invalid={validationMessage === undefined ? undefined : true}
+            aria-describedby={describedBy}
+            onChange={(event) => onUrlChange(event.target.value)}
+          />
+          <button className="button primary" type="submit" disabled={disabled}>
+            Discover
+          </button>
+        </div>
         <p id="public-video-link-help" className="field-help">
           YouTube, Instagram, Facebook, TikTok, and X public video links are supported.
         </p>
@@ -68,29 +78,46 @@ export function ExtractionForm({
           </p>
         )}
       </div>
-      <button className="button primary" type="submit" disabled={disabled}>
-        Find works
-      </button>
       <details className="advanced-options">
-        <summary>Advanced options</summary>
-        <div className="advanced-options-content">
-          <label htmlFor="effective-market">Effective Market</label>
-          <select
-            id="effective-market"
-            name="effective-market"
-            value={market}
-            disabled={disabled}
-            aria-describedby="effective-market-help"
-            onChange={(event) => onMarketChange(event.target.value as EffectiveMarketCode)}
+        <summary>
+          <span>Advanced options</span>
+          <svg
+            className="disclosure-chevron"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+            focusable="false"
           >
-            {marketOptions.map((option) => (
-              <option key={option.code} value={option.code}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-          <p id="effective-market-help" className="field-help">
-            Optional. Used for provider availability; defaults to United States.
+            <path d="m5.5 7.5 4.5 4.5 4.5-4.5" />
+          </svg>
+        </summary>
+        <div className="advanced-options-content">
+          <label htmlFor="effective-market">Region</label>
+          <div className="region-select">
+            <select
+              id="effective-market"
+              name="effective-market"
+              value={market}
+              disabled={disabled}
+              aria-describedby="region-help"
+              onChange={(event) => onMarketChange(event.target.value as EffectiveMarketCode)}
+            >
+              {marketOptions.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+            <svg
+              className="select-chevron"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="m5.5 7.5 4.5 4.5 4.5-4.5" />
+            </svg>
+          </div>
+          <p id="region-help" className="field-help">
+            Optional. Affects availability; defaults to United States.
           </p>
         </div>
       </details>

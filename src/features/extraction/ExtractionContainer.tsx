@@ -18,12 +18,12 @@ export function ExtractionContainer() {
     retry,
     startAnotherSource,
   } = useExtractionWorkflow()
-  const completedHeadingRef = useRef<HTMLHeadingElement>(null)
+  const resultsRef = useRef<HTMLElement>(null)
   const hasCompletedResponse = state.phase === 'empty' || state.phase === 'completed'
 
   useEffect(() => {
     if (state.phase === 'completed') {
-      completedHeadingRef.current?.focus()
+      resultsRef.current?.focus()
     }
   }, [state.phase])
 
@@ -44,29 +44,30 @@ export function ExtractionContainer() {
             onAnotherSource={startAnotherSource}
           />
         ) : (
-          <section className="completed-panel" aria-labelledby="extraction-completed-heading">
-            <h2 id="extraction-completed-heading" ref={completedHeadingRef} tabIndex={-1}>
-              Extraction complete
-            </h2>
-            <ScreenWorkResults
-              movies={state.response.results.movies}
-              tvSeries={state.response.results.tv_series}
-            />
-            <MusicResults
-              tracks={state.response.results.tracks}
-              musicReleases={state.response.results.music_releases}
-            />
-            <BookWorkResults books={state.response.results.books} />
-          </section>
+          <>
+            <p className="sr-only" role="status" aria-live="polite">
+              Results ready
+            </p>
+            <section className="completed-panel" aria-label="Results" ref={resultsRef} tabIndex={-1}>
+              <ScreenWorkResults
+                movies={state.response.results.movies}
+                tvSeries={state.response.results.tv_series}
+              />
+              <MusicResults
+                tracks={state.response.results.tracks}
+                musicReleases={state.response.results.music_releases}
+              />
+              <BookWorkResults books={state.response.results.books} />
+            </section>
+          </>
         )}
       </div>
     )
   }
 
   return (
-    <section className="entry-centered" aria-label="Run a Source Extraction">
+    <section className="entry-centered" aria-label="Discover from a video">
       <div className="entry-centered-inner surface">
-        <p className="eyebrow">Reelio</p>
         <ExtractionForm
           url={state.url}
           market={state.market}

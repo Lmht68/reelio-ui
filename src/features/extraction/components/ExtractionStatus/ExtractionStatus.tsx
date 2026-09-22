@@ -50,7 +50,7 @@ export function ExtractionStatus({
     return (
       <section className="waiting-panel state-panel" role="status" aria-live="polite" aria-labelledby="waiting-title">
         <div className="waiting-head">
-          <h2 id="waiting-title">Checking this public video...</h2>
+          <h2 id="waiting-title">Checking this video...</h2>
           <button className="button quiet" type="button" onClick={onStopWaiting}>
             Stop waiting
           </button>
@@ -70,7 +70,7 @@ export function ExtractionStatus({
         <h2 id="empty-results-title" ref={headingRef} tabIndex={-1}>
           No results found
         </h2>
-        <p>This Source did not produce any Movies, TV Series, Tracks, Music Releases, or Book Works.</p>
+        <p>This video did not produce any results.</p>
       </section>
     )
   }
@@ -102,7 +102,7 @@ export function ExtractionStatus({
           Try again
         </button>
         <button className="button secondary" type="button" onClick={onAnotherSource}>
-          Choose another Source
+          Choose another video
         </button>
       </div>
     </section>

@@ -57,7 +57,7 @@ export function MusicResults({ tracks, musicReleases }: MusicResultsProps) {
     <div className="music-results">
       {tracks.length > 0 ? (
         <section className="music-results-section" aria-labelledby="tracks-heading">
-          <h3 id="tracks-heading">Tracks</h3>
+          <h2 id="tracks-heading">Tracks</h2>
           <ul className="music-grid">
             {tracks.map((result) => (
               <li key={getTrackResultKey(result)}>
@@ -69,7 +69,7 @@ export function MusicResults({ tracks, musicReleases }: MusicResultsProps) {
       ) : null}
       {musicReleases.length > 0 ? (
         <section className="music-results-section" aria-labelledby="music-releases-heading">
-          <h3 id="music-releases-heading">Music Releases</h3>
+          <h2 id="music-releases-heading">Music Releases</h2>
           <ul className="music-grid">
             {musicReleases.map((result) => (
               <li key={getMusicReleaseResultKey(result)}>
