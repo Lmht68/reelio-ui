@@ -283,8 +283,8 @@ export function useExtractionWorkflow(): ExtractionWorkflow {
       phase: 'stopped-waiting',
       url: state.url,
       market: state.market,
-      title: 'Stopped waiting',
-      message: 'You stopped waiting in this browser. Reelio may still be checking the video on the server.',
+      title: 'Discovery cancelled',
+      message: 'You can start a new discovery anytime.',
     })
   }, [state])
 

@@ -62,7 +62,7 @@ export function SourceContext({ source, transcript, effectiveMarket, onAnotherSo
       </div>
       <div className="source-context-actions">
         <TranscriptDialog transcript={transcript} />
-        <button className="button secondary" type="button" onClick={onAnotherSource}>
+        <button className="button quiet" type="button" onClick={onAnotherSource}>
           Check another video
         </button>
       </div>

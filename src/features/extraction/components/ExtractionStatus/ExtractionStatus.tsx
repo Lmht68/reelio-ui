@@ -52,7 +52,7 @@ export function ExtractionStatus({
         <div className="waiting-head">
           <h2 id="waiting-title">Checking this video...</h2>
           <button className="button quiet" type="button" onClick={onStopWaiting}>
-            Stop waiting
+            Cancel
           </button>
         </div>
         <div className="pending-placeholder-grid" aria-hidden="true">

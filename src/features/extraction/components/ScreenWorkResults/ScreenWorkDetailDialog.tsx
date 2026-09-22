@@ -81,13 +81,13 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
         const movie = selection.result.movie
         const mention = selection.result.movie_mention
         const description = movie.description.trim()
-        const isMentionDifferent = movie.title !== mention.title || movie.year !== mention.year
+        const isInterpretedIdentityDifferent =
+          movie.title !== mention.title || movie.year !== mention.year
 
         detailContent = (
           <div className="screen-work-detail-grid">
             <ScreenWorkArtwork
               key={`movie-${movie.tmdb_id}`}
-              status="resolved"
               title={movie.title}
               year={movie.year}
               posterUrl={movie.poster_url}
@@ -96,16 +96,16 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
               <h3>{movie.title}</h3>
               <dl className="screen-work-detail-list">
                 <div>
-                  <dt>Release year</dt>
+                  <dt>Year</dt>
                   <dd>{movie.year}</dd>
                 </div>
                 <div>
-                  <dt>Rating</dt>
-                  <dd>TMDB {movie.tmdb_score.toFixed(1)} / 10</dd>
+                  <dt>Score</dt>
+                  <dd>{movie.tmdb_score.toFixed(1)}</dd>
                 </div>
-                {isMentionDifferent ? (
+                {isInterpretedIdentityDifferent ? (
                   <div>
-                    <dt>Mentioned as</dt>
+                    <dt>Interpreted as</dt>
                     <dd>
                       {mention.title} ({mention.year})
                     </dd>
@@ -143,21 +143,13 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
         const mention = selection.result.movie_mention
 
         detailContent = (
-          <div className="screen-work-detail-grid">
-            <ScreenWorkArtwork
-              key={`movie-${mention.title}-${mention.year}`}
-              status="unresolved"
-              title={mention.title}
-              year={mention.year}
-            />
-            <div className="screen-work-detail-copy">
-              <h3>{mention.title}</h3>
-              <p className="screen-work-detail-year">{mention.year}</p>
-              <span className="screen-work-status-badge">Unresolved</span>
-              <p className="screen-work-detail-description">
-                Reelio could not verify this Movie Mention against TMDB, so provider metadata is unavailable.
-              </p>
-            </div>
+          <div className="screen-work-detail-copy screen-work-detail-copy-unverified">
+            <h3>{mention.title}</h3>
+            <p className="screen-work-detail-year">{mention.year}</p>
+            <span className="result-status-badge screen-work-status-badge">Not verified</span>
+            <p className="screen-work-detail-description">
+              We could not verify this movie from the video, so confirmed details are unavailable.
+            </p>
           </div>
         )
       }
@@ -165,14 +157,13 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
       const tvSeries = selection.result.tv_series
       const mention = selection.result.tv_series_mention
       const description = tvSeries.description.trim()
-      const isMentionDifferent =
+      const isInterpretedIdentityDifferent =
         tvSeries.title !== mention.title || tvSeries.first_air_year !== mention.year
 
       detailContent = (
         <div className="screen-work-detail-grid">
           <ScreenWorkArtwork
             key={`tv-series-${tvSeries.tmdb_id}`}
-            status="resolved"
             title={tvSeries.title}
             year={tvSeries.first_air_year}
             posterUrl={tvSeries.poster_url}
@@ -181,20 +172,20 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
             <h3>{tvSeries.title}</h3>
             <dl className="screen-work-detail-list">
               <div>
-                <dt>First air year</dt>
+                <dt>First aired</dt>
                 <dd>{tvSeries.first_air_year}</dd>
               </div>
               <div>
-                <dt>Final air year</dt>
-                <dd>{tvSeries.last_air_year ?? 'Unavailable'}</dd>
+                <dt>Last aired</dt>
+                <dd>{tvSeries.last_air_year ?? 'Not available'}</dd>
               </div>
               <div>
-                <dt>Rating</dt>
-                <dd>TMDB {tvSeries.tmdb_score.toFixed(1)} / 10</dd>
+                <dt>Score</dt>
+                <dd>{tvSeries.tmdb_score.toFixed(1)}</dd>
               </div>
-              {isMentionDifferent ? (
+              {isInterpretedIdentityDifferent ? (
                 <div>
-                  <dt>Mentioned as</dt>
+                  <dt>Interpreted as</dt>
                   <dd>
                     {mention.title} ({mention.year})
                   </dd>
@@ -232,21 +223,13 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
       const mention = selection.result.tv_series_mention
 
       detailContent = (
-        <div className="screen-work-detail-grid">
-          <ScreenWorkArtwork
-            key={`tv-series-${mention.title}-${mention.year}`}
-            status="unresolved"
-            title={mention.title}
-            year={mention.year}
-          />
-          <div className="screen-work-detail-copy">
-            <h3>{mention.title}</h3>
-            <p className="screen-work-detail-year">{mention.year}</p>
-            <span className="screen-work-status-badge">Unresolved</span>
-            <p className="screen-work-detail-description">
-              Reelio could not verify this TV Series Mention against TMDB, so provider metadata is unavailable.
-            </p>
-          </div>
+        <div className="screen-work-detail-copy screen-work-detail-copy-unverified">
+          <h3>{mention.title}</h3>
+          <p className="screen-work-detail-year">{mention.year}</p>
+          <span className="result-status-badge screen-work-status-badge">Not verified</span>
+          <p className="screen-work-detail-description">
+            We could not verify this TV Series from the video, so confirmed details are unavailable.
+          </p>
         </div>
       )
     }

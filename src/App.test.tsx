@@ -134,12 +134,12 @@ describe('video discovery application', () => {
     expect(document.querySelectorAll('.pending-placeholder')).toHaveLength(4)
     expect(screen.queryByText(/Movies|TV Series|Tracks|Books/)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Stop waiting' }))
-    expect(await screen.findByText('You stopped waiting in this browser. Reelio may still be checking the video on the server.')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(await screen.findByText('You can start a new discovery anytime.')).toBeVisible()
     expect(signals[0]?.aborted).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(screen.getByLabelText('Public video link')).toBeEnabled()
-    expect(screen.getByRole('heading', { name: 'Stopped waiting' })).toHaveFocus()
+    expect(screen.getByRole('heading', { name: 'Discovery cancelled' })).toHaveFocus()
 
     await user.click(screen.getByRole('button', { name: 'Try again' }))
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
@@ -350,7 +350,7 @@ describe('video discovery application', () => {
     ).toEqual(['TV Series', 'Tracks', 'Book Works'])
   })
 
-  it('should render resolved and unresolved Movies and TV Series when completed results contain Screen Works', async () => {
+  it('should render resolved and unverified Movies and TV Series when completed results contain Screen Works', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createScreenWorkExtractionResponse()))
     render(<App />)
@@ -362,9 +362,9 @@ describe('video discovery application', () => {
     const resolvedMovieCard = screen.getByRole('button', {
       name: "Open details for Le Fabuleux Destin d'Amélie Poulain",
     })
-    const unresolvedMovieCard = screen.getByRole('button', { name: 'Open details for Unknown Movie' })
+    const unverifiedMovieCard = screen.getByRole('button', { name: 'Open details for Unknown Movie' })
     const resolvedTvSeriesCard = screen.getByRole('button', { name: 'Open details for The Last of Us' })
-    const unresolvedTvSeriesCard = screen.getByRole('button', {
+    const unverifiedTvSeriesCard = screen.getByRole('button', {
       name: 'Open details for Unknown TV Series',
     })
 
@@ -374,9 +374,10 @@ describe('video discovery application', () => {
     )
     expect(resolvedMovieCard).toHaveTextContent("Le Fabuleux Destin d'Amélie Poulain")
     expect(resolvedMovieCard).toHaveTextContent('2000')
-    expect(resolvedMovieCard).toHaveTextContent('TMDB 7.9')
-    expect(resolvedMovieCard).toHaveTextContent('Mentioned as Amélie (2001)')
-    expect(screen.queryByText('Mentioned as The Last of Us (2023)')).not.toBeInTheDocument()
+    expect(resolvedMovieCard).toHaveTextContent('7.9')
+    expect(resolvedMovieCard).not.toHaveTextContent('TMDB')
+    expect(resolvedMovieCard).not.toHaveTextContent('/ 10')
+    expect(screen.queryByText(/Mentioned as/)).not.toBeInTheDocument()
     expect(
       within(resolvedMovieCard).getByRole('img', {
         name: "Poster unavailable for Le Fabuleux Destin d'Amélie Poulain",
@@ -387,19 +388,23 @@ describe('video discovery application', () => {
       name: 'Poster for The Last of Us',
     })
     expect(resolvedTvSeriesCard).toHaveTextContent('2023')
-    expect(resolvedTvSeriesCard).toHaveTextContent('TMDB 8.6')
+    expect(resolvedTvSeriesCard).toHaveTextContent('8.6')
+    expect(resolvedTvSeriesCard).not.toHaveTextContent('TMDB')
+    expect(resolvedTvSeriesCard).not.toHaveTextContent('/ 10')
     fireEvent.error(tvPoster)
     expect(
       within(resolvedTvSeriesCard).getByRole('img', {
         name: 'Poster unavailable for The Last of Us',
       }),
     ).toBeVisible()
-    expect(within(unresolvedMovieCard).getByText('Unresolved')).toBeVisible()
-    expect(within(unresolvedTvSeriesCard).getByText('Unresolved')).toBeVisible()
+    expect(within(unverifiedMovieCard).getByText('Not verified')).toBeVisible()
+    expect(within(unverifiedTvSeriesCard).getByText('Not verified')).toBeVisible()
+    expect(within(unverifiedMovieCard).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(unverifiedTvSeriesCard).queryByRole('img')).not.toBeInTheDocument()
     expect(screen.queryByText(/Result Statistics/)).not.toBeInTheDocument()
   })
 
-  it('should show verified Screen Work details and restore focus when a Result card is opened', async () => {
+  it('should show useful verified details and restore focus when a Result card is opened', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createScreenWorkExtractionResponse()))
     render(<App />)
@@ -422,8 +427,12 @@ describe('video discovery application', () => {
     ).toBeVisible()
     expect(within(resolvedDialog).getByText('Craig Mazin, Neil Druckmann')).toBeVisible()
     expect(within(resolvedDialog).getByText('Pedro Pascal, Bella Ramsey')).toBeVisible()
-    expect(within(resolvedDialog).getByText('Final air year')).toBeVisible()
-    expect(within(resolvedDialog).getByText('Unavailable')).toBeVisible()
+    expect(within(resolvedDialog).getByText('First aired')).toBeVisible()
+    expect(within(resolvedDialog).getByText('Last aired')).toBeVisible()
+    expect(within(resolvedDialog).getByText('Not available')).toBeVisible()
+    expect(within(resolvedDialog).getByText('Score')).toBeVisible()
+    expect(within(resolvedDialog).getByText('8.6')).toBeVisible()
+    expect(within(resolvedDialog).queryByText('Interpreted as')).not.toBeInTheDocument()
     expect(tmdbLink).toHaveTextContent('Open on TMDB')
     expect(tmdbLink).toHaveAttribute('href', 'https://www.themoviedb.org/tv/100088')
     expect(tmdbLink).toHaveAttribute('target', '_blank')
@@ -433,27 +442,39 @@ describe('video discovery application', () => {
     expect(screen.queryByRole('dialog', { name: 'The Last of Us details' })).not.toBeInTheDocument()
     expect(resolvedTvSeriesCard).toHaveFocus()
 
-    const unresolvedMovieCard = screen.getByRole('button', { name: 'Open details for Unknown Movie' })
-    unresolvedMovieCard.focus()
-    await user.keyboard('{Enter}')
-    const unresolvedDialog = await screen.findByRole('dialog', { name: 'Unknown Movie details' })
+    const resolvedMovieCard = screen.getByRole('button', {
+      name: "Open details for Le Fabuleux Destin d'Amélie Poulain",
+    })
+    await user.click(resolvedMovieCard)
+    const movieDialog = await screen.findByRole('dialog', {
+      name: "Le Fabuleux Destin d'Amélie Poulain details",
+    })
 
+    expect(within(movieDialog).getByText('Interpreted as')).toBeVisible()
+    expect(within(movieDialog).getByText('Amélie (2001)')).toBeVisible()
+    expect(within(movieDialog).queryByText(/Mentioned as/)).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+
+    const unverifiedMovieCard = screen.getByRole('button', { name: 'Open details for Unknown Movie' })
+    unverifiedMovieCard.focus()
+    await user.keyboard('{Enter}')
+    const unverifiedDialog = await screen.findByRole('dialog', { name: 'Unknown Movie details' })
+
+    expect(within(unverifiedDialog).getByText('Not verified')).toBeVisible()
     expect(
-      within(unresolvedDialog).getByText(
-        'Reelio could not verify this Movie Mention against TMDB, so provider metadata is unavailable.',
+      within(unverifiedDialog).getByText(
+        'We could not verify this movie from the video, so confirmed details are unavailable.',
       ),
     ).toBeVisible()
+    expect(within(unverifiedDialog).queryByRole('img')).not.toBeInTheDocument()
     expect(
-      within(unresolvedDialog).getByRole('img', { name: 'Poster unavailable for Unknown Movie' }),
-    ).toBeVisible()
-    expect(
-      within(unresolvedDialog).queryByText('A Parisian woman quietly improves the lives around her.'),
+      within(unverifiedDialog).queryByText('A Parisian woman quietly improves the lives around her.'),
     ).not.toBeInTheDocument()
-    expect(within(unresolvedDialog).queryByText('Directors')).not.toBeInTheDocument()
-    expect(within(unresolvedDialog).queryByText('Cast')).not.toBeInTheDocument()
-    expect(within(unresolvedDialog).queryByText('TMDB 7.9 / 10')).not.toBeInTheDocument()
-    expect(within(unresolvedDialog).queryByRole('img', { name: /Poster for/ })).not.toBeInTheDocument()
-    expect(within(unresolvedDialog).queryByRole('link', { name: /TMDB/ })).not.toBeInTheDocument()
+    expect(within(unverifiedDialog).queryByText('Directors')).not.toBeInTheDocument()
+    expect(within(unverifiedDialog).queryByText('Cast')).not.toBeInTheDocument()
+    expect(within(unverifiedDialog).queryByText('Score')).not.toBeInTheDocument()
+    expect(within(unverifiedDialog).queryByRole('link', { name: /TMDB/ })).not.toBeInTheDocument()
   })
 
   it('should render Spotify-authoritative and unresolved cards when a completed Extraction contains music Results', async () => {

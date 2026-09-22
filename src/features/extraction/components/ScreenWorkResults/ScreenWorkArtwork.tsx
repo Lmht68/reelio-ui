@@ -1,19 +1,10 @@
 import { useState } from 'react'
 
-type ResolvedScreenWorkArtworkProps = {
-  status: 'resolved'
+type ScreenWorkArtworkProps = {
   title: string
   year: number
   posterUrl: string | null
 }
-
-type UnresolvedScreenWorkArtworkProps = {
-  status: 'unresolved'
-  title: string
-  year: number
-}
-
-type ScreenWorkArtworkProps = ResolvedScreenWorkArtworkProps | UnresolvedScreenWorkArtworkProps
 
 type PosterFallbackProps = {
   title: string
@@ -33,23 +24,19 @@ function PosterFallback({ title, year }: PosterFallbackProps) {
   )
 }
 
-export function ScreenWorkArtwork(props: ScreenWorkArtworkProps) {
+export function ScreenWorkArtwork({ title, year, posterUrl }: ScreenWorkArtworkProps) {
   const [hasImageError, setHasImageError] = useState(false)
 
-  if (props.status === 'unresolved') {
-    return <PosterFallback title={props.title} year={props.year} />
-  }
-
-  if (props.posterUrl === null || hasImageError) {
-    return <PosterFallback title={props.title} year={props.year} />
+  if (posterUrl === null || hasImageError) {
+    return <PosterFallback title={title} year={year} />
   }
 
   return (
     <div className="poster-frame">
       <img
         className="poster-image"
-        src={props.posterUrl}
-        alt={`Poster for ${props.title}`}
+        src={posterUrl}
+        alt={`Poster for ${title}`}
         loading="lazy"
         onError={() => setHasImageError(true)}
       />

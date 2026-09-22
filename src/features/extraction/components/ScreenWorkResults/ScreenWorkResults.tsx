@@ -28,11 +28,11 @@ export function ScreenWorkResults({ movies, tvSeries }: ScreenWorkResultsProps) 
   }
 
   return (
-    <div className="screen-work-results">
+    <div className="result-collection screen-work-results">
       {movies.length > 0 ? (
-        <section className="screen-work-results-section" aria-labelledby="movies-heading">
+        <section className="result-category screen-work-results-section" aria-labelledby="movies-heading">
           <h2 id="movies-heading">Movies</h2>
-          <ul className="screen-work-grid">
+          <ul className="result-grid screen-work-grid">
             {movies.map((result) => (
               <li
                 key={
@@ -52,9 +52,9 @@ export function ScreenWorkResults({ movies, tvSeries }: ScreenWorkResultsProps) 
         </section>
       ) : null}
       {tvSeries.length > 0 ? (
-        <section className="screen-work-results-section" aria-labelledby="tv-series-heading">
+        <section className="result-category screen-work-results-section" aria-labelledby="tv-series-heading">
           <h2 id="tv-series-heading">TV Series</h2>
-          <ul className="screen-work-grid">
+          <ul className="result-grid screen-work-grid">
             {tvSeries.map((result) => (
               <li
                 key={
