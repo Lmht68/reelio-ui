@@ -474,9 +474,6 @@ main {
   color: var(--ink);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  text-align: justify;
-  hyphens: auto;
-  text-wrap: pretty;
 }
 
 .completed-panel {
@@ -501,9 +498,7 @@ main {
   border-radius: var(--radius);
 }
 
-.result-category h2,
-.music-results-section h2,
-.book-work-results-section h2 {
+.result-category h2 {
   margin: 0 0 clamp(1.25rem, 2.5vw, 1.75rem);
 }
 
@@ -513,13 +508,11 @@ main {
   margin-top: 2.5rem;
 }
 
-.music-results-section,
-.book-work-results-section {
+.music-results-section {
   margin-top: 2.5rem;
 }
 
-.music-results-section:first-child,
-.book-work-results-section:first-child {
+.music-results-section:first-child {
   margin-top: 0;
 }
 
@@ -539,19 +532,6 @@ main {
   min-width: 0;
 }
 
-.book-work-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-  gap: clamp(1rem, 2vw, 1.5rem);
-  align-items: start;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.book-work-grid li {
-  min-width: 0;
-}
 
 .result-card {
   display: block;
@@ -572,7 +552,7 @@ main {
   min-width: 0;
   padding: 0;
   color: var(--ink);
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   background: transparent;
   border: 0;
@@ -626,10 +606,6 @@ main {
   background: var(--surface);
 }
 
-.book-cover-fallback-unresolved {
-  color: var(--warning);
-  background: var(--warning-wash);
-}
 
 .music-cover-fallback strong,
 .book-cover-fallback strong {
@@ -740,9 +716,7 @@ main {
 .music-card-artists,
 .music-card-release,
 .book-work-card-authors,
-.book-work-card-provenance,
-.book-work-card-edition,
-.book-work-card-mention {
+.book-work-card-publication {
   display: -webkit-box;
   overflow: hidden;
   color: var(--muted);
@@ -758,20 +732,12 @@ main {
 }
 
 .music-card-release,
-.book-work-card-provenance,
-.book-work-card-edition {
+.book-work-card-publication {
   margin: 0.35rem 0 0;
   font-size: 0.78rem;
   -webkit-line-clamp: 2;
 }
 
-.book-work-card-mention {
-  margin: 0.45rem 0 0;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
-  -webkit-line-clamp: 2;
-}
 
 .result-status-badge {
   display: inline-flex;
@@ -786,19 +752,6 @@ main {
   border-radius: 999px;
 }
 
-.book-work-status-badge {
-  display: inline-flex;
-  width: fit-content;
-  padding: 0.16rem 0.45rem;
-  margin-top: 0.5rem;
-  color: var(--warning);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.045em;
-  background: var(--warning-wash);
-  border-radius: 999px;
-  text-transform: uppercase;
-}
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .result-card,
@@ -1049,8 +1002,7 @@ main {
     max-height: none;
   }
 
-  .result-grid,
-  .book-work-grid {
+  .result-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

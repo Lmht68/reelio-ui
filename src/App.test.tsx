@@ -312,7 +312,7 @@ describe('video discovery application', () => {
       'TV Series',
       'Songs',
       'Albums',
-      'Book Works',
+      'Books',
     ])
     for (const heading of categoryHeadings) {
       const region = screen.getByRole('region', { name: heading.textContent ?? '' })
@@ -347,7 +347,7 @@ describe('video discovery application', () => {
 
     expect(
       screen.getAllByRole('heading', { level: 2 }).map(({ textContent }) => textContent),
-    ).toEqual(['TV Series', 'Songs', 'Book Works'])
+    ).toEqual(['TV Series', 'Songs', 'Books'])
   })
 
   it('should render resolved and unverified Movies and TV Series when completed results contain Screen Works', async () => {
@@ -640,64 +640,71 @@ describe('video discovery application', () => {
     expect(unverifiedSongCard).toHaveFocus()
   })
 
-  it('should render Open Library and unresolved Book Work cards when a completed Extraction contains Book Work Results', async () => {
+  it('should display verified and Not verified Books without provider card copy when results contain Book Work Results', async () => {
     const user = userEvent.setup()
-    fetchMock.mockResolvedValueOnce(jsonResponse(createBookWorkExtractionResponse()))
+    const response = createBookWorkExtractionResponse()
+    const noMetadataBook = response.results.books[1]
+
+    if (noMetadataBook === undefined || noMetadataBook.status !== 'resolved') {
+      throw new Error('Book fixture must contain a resolved result without an edition.')
+    }
+
+    noMetadataBook.book.authors = []
+    fetchMock.mockResolvedValueOnce(jsonResponse(response))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    await screen.findByRole('heading', { name: 'Book Works' })
+    await screen.findByRole('heading', { name: 'Books' })
     const resolvedBookCard = screen.getByRole('button', {
-      name: 'Open Open Library Book Work details for Pride and Prejudice by Jane Austen',
+      name: 'Open details for Pride and Prejudice by Jane Austen',
     })
-    const noEditionBookCard = screen.getByRole('button', {
-      name: 'Open Open Library Book Work details for The Long Ships: A Saga of the Viking Age by Frans G. Bengtsson',
+    const noMetadataBookCard = screen.getByRole('button', {
+      name: 'Open details for The Long Ships: A Saga of the Viking Age',
     })
-    const unresolvedBookCard = screen.getByRole('button', {
-      name: 'Open unresolved Book Mention details for Unknown Book by Unknown Author',
+    const unverifiedBookCard = screen.getByRole('button', {
+      name: 'Open details for Unknown Book by Unknown Author',
     })
 
     expect(resolvedBookCard).toHaveTextContent('Pride and Prejudice')
     expect(resolvedBookCard).toHaveTextContent('Jane Austen')
-    expect(resolvedBookCard).toHaveTextContent('Open Library Book Work')
-    expect(resolvedBookCard).toHaveTextContent(
-      "Preferred edition: Pride and Prejudice: A Collector's Edition · 1813",
-    )
-    expect(resolvedBookCard).toHaveTextContent('Mentioned as Pride & Prejudice by Jane Austen')
+    expect(resolvedBookCard).toHaveTextContent('1813')
     expect(
       within(resolvedBookCard).getByRole('img', {
         name: 'Cover unavailable for Pride and Prejudice by Jane Austen',
       }),
     ).toBeVisible()
-    expect(noEditionBookCard).toHaveTextContent('Preferred edition: Unavailable')
-    expect(within(noEditionBookCard).queryByText(/Mentioned as/)).not.toBeInTheDocument()
+    expect(
+      within(resolvedBookCard).queryByText(/Open Library|Preferred edition|Mentioned as/),
+    ).not.toBeInTheDocument()
 
-    const longShipsCover = within(noEditionBookCard).getByRole('img', {
-      name: 'Cover for The Long Ships: A Saga of the Viking Age by Frans G. Bengtsson',
+    expect(noMetadataBookCard).not.toHaveTextContent('Author Credits unavailable')
+    expect(noMetadataBookCard).not.toHaveTextContent('Published')
+    const longShipsCover = within(noMetadataBookCard).getByRole('img', {
+      name: 'Cover for The Long Ships: A Saga of the Viking Age',
     })
     fireEvent.error(longShipsCover)
     expect(
-      within(noEditionBookCard).getByRole('img', {
-        name: 'Cover unavailable for The Long Ships: A Saga of the Viking Age by Frans G. Bengtsson',
+      within(noMetadataBookCard).getByRole('img', {
+        name: 'Cover unavailable for The Long Ships: A Saga of the Viking Age',
       }),
     ).toBeVisible()
 
-    expect(unresolvedBookCard).toHaveTextContent('Unknown Book')
-    expect(unresolvedBookCard).toHaveTextContent('Unknown Author')
-    expect(within(unresolvedBookCard).getAllByText('Unresolved')).toHaveLength(2)
-    expect(within(unresolvedBookCard).queryByText(/Open Library/)).not.toBeInTheDocument()
-    expect(within(unresolvedBookCard).queryByText(/Preferred edition/)).not.toBeInTheDocument()
-    expect(within(unresolvedBookCard).queryByRole('link')).not.toBeInTheDocument()
+    expect(unverifiedBookCard).toHaveTextContent('Unknown Book')
+    expect(unverifiedBookCard).toHaveTextContent('Unknown Author')
+    expect(within(unverifiedBookCard).getByText('Not verified')).toBeVisible()
+    expect(within(unverifiedBookCard).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(unverifiedBookCard).queryByText(/Open Library|Published/)).not.toBeInTheDocument()
+    expect(within(unverifiedBookCard).queryByRole('link')).not.toBeInTheDocument()
   })
 
-  it('should expose only status-appropriate Book Work details when a Result card is opened', async () => {
+  it('should show useful Book details and restore focus when a Result card is opened', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createBookWorkExtractionResponse()))
     render(<App />)
 
     await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     const resolvedBookCard = await screen.findByRole('button', {
-      name: 'Open Open Library Book Work details for Pride and Prejudice by Jane Austen',
+      name: 'Open details for Pride and Prejudice by Jane Austen',
     })
 
     resolvedBookCard.focus()
@@ -710,20 +717,22 @@ describe('video discovery application', () => {
     })
 
     expect(within(resolvedBookDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
-    expect(within(resolvedBookDialog).getAllByText('Jane Austen')).toHaveLength(2)
+    expect(within(resolvedBookDialog).getByText('Book title')).toBeVisible()
+    expect(within(resolvedBookDialog).getByText('Author')).toBeVisible()
+    expect(within(resolvedBookDialog).getByText('Interpreted as')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('Pride & Prejudice by Jane Austen')).toBeVisible()
-    expect(within(resolvedBookDialog).getByText('OL66554W')).toBeVisible()
-    expect(
-      within(resolvedBookDialog).getByText("Pride and Prejudice: A Collector's Edition · 1813"),
-    ).toBeVisible()
-    expect(
-      within(resolvedBookDialog).getByText("Pride and Prejudice: A Collector's Edition"),
-    ).toBeVisible()
+    expect(within(resolvedBookDialog).getByText('Published')).toBeVisible()
+    expect(within(resolvedBookDialog).getByText('Publisher')).toBeVisible()
+    expect(within(resolvedBookDialog).getByText('ISBN-10')).toBeVisible()
+    expect(within(resolvedBookDialog).getByText('ISBN-13')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('1813')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('T. Egerton')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('0141439513')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('9780141439518')).toBeVisible()
-    expect(within(resolvedBookDialog).getByText('OL12345M')).toBeVisible()
+    expect(within(resolvedBookDialog).queryByText(/Open Library (title|Work ID|Edition)/)).not.toBeInTheDocument()
+    expect(within(resolvedBookDialog).queryByText('Preferred Book Edition')).not.toBeInTheDocument()
+    expect(within(resolvedBookDialog).queryByText('OL66554W')).not.toBeInTheDocument()
+    expect(within(resolvedBookDialog).queryByText('OL12345M')).not.toBeInTheDocument()
     expect(openLibraryLink).toHaveTextContent('Open on Open Library')
     expect(openLibraryLink).toHaveAttribute('href', 'https://openlibrary.org/works/OL66554W')
     expect(openLibraryLink).toHaveAttribute('target', '_blank')
@@ -735,50 +744,44 @@ describe('video discovery application', () => {
     ).not.toBeInTheDocument()
     expect(resolvedBookCard).toHaveFocus()
 
-    const noEditionBookCard = screen.getByRole('button', {
-      name: 'Open Open Library Book Work details for The Long Ships: A Saga of the Viking Age by Frans G. Bengtsson',
+    const noMetadataBookCard = screen.getByRole('button', {
+      name: 'Open details for The Long Ships: A Saga of the Viking Age by Frans G. Bengtsson',
     })
-    await user.click(noEditionBookCard)
-    const noEditionBookDialog = await screen.findByRole('dialog', {
+    await user.click(noMetadataBookCard)
+    const noMetadataBookDialog = await screen.findByRole('dialog', {
       name: 'The Long Ships: A Saga of the Viking Age details',
     })
 
-    expect(within(noEditionBookDialog).getByText('Preferred Book Edition')).toBeVisible()
-    expect(within(noEditionBookDialog).getByText('Unavailable')).toBeVisible()
-    expect(within(noEditionBookDialog).queryByText('Open Library Edition title')).not.toBeInTheDocument()
-    expect(within(noEditionBookDialog).queryByText('Book Edition publication year')).not.toBeInTheDocument()
-    expect(within(noEditionBookDialog).queryByText('Publishers')).not.toBeInTheDocument()
-    expect(within(noEditionBookDialog).queryByText('ISBN-10')).not.toBeInTheDocument()
-    expect(within(noEditionBookDialog).queryByText('ISBN-13')).not.toBeInTheDocument()
-    expect(within(noEditionBookDialog).queryByText('Open Library Edition ID')).not.toBeInTheDocument()
+    expect(within(noMetadataBookDialog).queryByText('Published')).not.toBeInTheDocument()
+    expect(within(noMetadataBookDialog).queryByText('Publisher')).not.toBeInTheDocument()
+    expect(within(noMetadataBookDialog).queryByText('ISBN-10')).not.toBeInTheDocument()
+    expect(within(noMetadataBookDialog).queryByText('ISBN-13')).not.toBeInTheDocument()
 
-    await user.click(within(noEditionBookDialog).getByRole('button', { name: 'Close details' }))
-    expect(noEditionBookCard).toHaveFocus()
+    await user.click(within(noMetadataBookDialog).getByRole('button', { name: 'Close details' }))
+    expect(noMetadataBookCard).toHaveFocus()
 
-    const unresolvedBookCard = screen.getByRole('button', {
-      name: 'Open unresolved Book Mention details for Unknown Book by Unknown Author',
+    const unverifiedBookCard = screen.getByRole('button', {
+      name: 'Open details for Unknown Book by Unknown Author',
     })
-    unresolvedBookCard.focus()
+    unverifiedBookCard.focus()
     await user.keyboard('{Enter}')
-    const unresolvedBookDialog = await screen.findByRole('dialog', { name: 'Unknown Book details' })
+    const unverifiedBookDialog = await screen.findByRole('dialog', { name: 'Unknown Book details' })
 
-    expect(within(unresolvedBookDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(unverifiedBookDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(unverifiedBookDialog).getByText('Book title')).toBeVisible()
+    expect(within(unverifiedBookDialog).getByText('Author')).toBeVisible()
+    expect(within(unverifiedBookDialog).getByText('Not verified')).toBeVisible()
     expect(
-      within(unresolvedBookDialog).getByText(
-        'Reelio could not verify this Book Mention against Open Library, so provider metadata and links are unavailable.',
+      within(unverifiedBookDialog).getByText(
+        'We could not verify this book from the video, so confirmed details are unavailable.',
       ),
     ).toBeVisible()
-    expect(
-      within(unresolvedBookDialog).getByRole('img', {
-        name: 'No verified cover for Unknown Book by Unknown Author',
-      }),
-    ).toBeVisible()
-    expect(within(unresolvedBookDialog).getAllByText('Unknown Author')).toHaveLength(2)
-    expect(within(unresolvedBookDialog).queryByText('Open Library Work ID')).not.toBeInTheDocument()
-    expect(within(unresolvedBookDialog).queryByText('Preferred Book Edition')).not.toBeInTheDocument()
-    expect(within(unresolvedBookDialog).queryByText('Open Library Edition title')).not.toBeInTheDocument()
-    expect(within(unresolvedBookDialog).queryByRole('img', { name: /Cover for/ })).not.toBeInTheDocument()
-    expect(within(unresolvedBookDialog).queryByRole('link', { name: /Open Library/ })).not.toBeInTheDocument()
+    expect(within(unverifiedBookDialog).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(unverifiedBookDialog).queryByText(/Open Library|Published|Publisher|ISBN/)).not.toBeInTheDocument()
+    expect(within(unverifiedBookDialog).queryByRole('link')).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(unverifiedBookCard).toHaveFocus()
   })
 
   it('should preserve Transcript context and trigger focus when pointer and keyboard actions close it', async () => {

@@ -10,7 +10,6 @@ import { BookWorkArtwork } from './BookWorkArtwork'
 import {
   formatAuthorCredits,
   formatBookMention,
-  formatPreferredBookEditionSummary,
   isBookMentionDifferent,
 } from './bookWorkResultPresentation'
 
@@ -91,7 +90,6 @@ export function BookWorkDetailDialog({ selection, onClose }: BookWorkDetailDialo
         <div className="book-work-detail-grid">
           <BookWorkArtwork
             key={`book-${book.open_library_work_id}`}
-            status="resolved"
             title={book.title}
             authorNames={book.authors.map(({ name }) => name)}
             coverUrl={book.cover_url}
@@ -100,54 +98,44 @@ export function BookWorkDetailDialog({ selection, onClose }: BookWorkDetailDialo
             <h3>{book.title}</h3>
             <dl className="book-work-detail-list">
               <div>
-                <dt>Open Library title</dt>
+                <dt>Book title</dt>
                 <dd>{book.title}</dd>
               </div>
-              <div>
-                <dt>Author Credits</dt>
-                <dd>{authorCredits || 'Unavailable'}</dd>
-              </div>
+              {authorCredits.length > 0 ? (
+                <div>
+                  <dt>Author</dt>
+                  <dd>{authorCredits}</dd>
+                </div>
+              ) : null}
               {hasDifferentMention ? (
                 <div>
-                  <dt>Mentioned as</dt>
+                  <dt>Interpreted as</dt>
                   <dd>{formatBookMention(mention)}</dd>
                 </div>
               ) : null}
-              <div>
-                <dt>Open Library Work ID</dt>
-                <dd>{book.open_library_work_id}</dd>
-              </div>
-              <div>
-                <dt>Preferred Book Edition</dt>
-                <dd>{formatPreferredBookEditionSummary(edition)}</dd>
-              </div>
-              {edition !== null ? (
-                <>
-                  <div>
-                    <dt>Open Library Edition title</dt>
-                    <dd>{edition.title ?? 'Unavailable'}</dd>
-                  </div>
-                  <div>
-                    <dt>Book Edition publication year</dt>
-                    <dd>{edition.publication_year ?? 'Unavailable'}</dd>
-                  </div>
-                  <div>
-                    <dt>Publishers</dt>
-                    <dd>{edition.publishers.length > 0 ? edition.publishers.join(', ') : 'Unavailable'}</dd>
-                  </div>
-                  <div>
-                    <dt>ISBN-10</dt>
-                    <dd>{edition.isbn_10.length > 0 ? edition.isbn_10.join(', ') : 'Unavailable'}</dd>
-                  </div>
-                  <div>
-                    <dt>ISBN-13</dt>
-                    <dd>{edition.isbn_13.length > 0 ? edition.isbn_13.join(', ') : 'Unavailable'}</dd>
-                  </div>
-                  <div>
-                    <dt>Open Library Edition ID</dt>
-                    <dd>{edition.open_library_edition_id}</dd>
-                  </div>
-                </>
+              {edition !== null && edition.publication_year !== null ? (
+                <div>
+                  <dt>Published</dt>
+                  <dd>{edition.publication_year}</dd>
+                </div>
+              ) : null}
+              {edition !== null && edition.publishers.length > 0 ? (
+                <div>
+                  <dt>Publisher</dt>
+                  <dd>{edition.publishers.join(', ')}</dd>
+                </div>
+              ) : null}
+              {edition !== null && edition.isbn_10.length > 0 ? (
+                <div>
+                  <dt>ISBN-10</dt>
+                  <dd>{edition.isbn_10.join(', ')}</dd>
+                </div>
+              ) : null}
+              {edition !== null && edition.isbn_13.length > 0 ? (
+                <div>
+                  <dt>ISBN-13</dt>
+                  <dd>{edition.isbn_13.join(', ')}</dd>
+                </div>
               ) : null}
             </dl>
             <a
@@ -167,27 +155,24 @@ export function BookWorkDetailDialog({ selection, onClose }: BookWorkDetailDialo
       const authorCredits = formatAuthorCredits(mention.authors)
 
       detailContent = (
-        <div className="book-work-detail-grid">
-          <BookWorkArtwork key={`book-${formatBookMention(mention)}`} status="unresolved" mention={mention} />
-          <div className="book-work-detail-copy">
-            <h3>{mention.title}</h3>
-            <dl className="book-work-detail-list">
+        <div className="book-work-detail-copy">
+          <h3>{mention.title}</h3>
+          <dl className="book-work-detail-list">
+            <div>
+              <dt>Book title</dt>
+              <dd>{mention.title}</dd>
+            </div>
+            {authorCredits.length > 0 ? (
               <div>
-                <dt>Book Mention</dt>
-                <dd>{mention.title}</dd>
+                <dt>Author</dt>
+                <dd>{authorCredits}</dd>
               </div>
-              {authorCredits.length > 0 ? (
-                <div>
-                  <dt>Author Credits</dt>
-                  <dd>{authorCredits}</dd>
-                </div>
-              ) : null}
-            </dl>
-            <span className="book-work-status-badge">Unresolved</span>
-            <p className="book-work-detail-description">
-              Reelio could not verify this Book Mention against Open Library, so provider metadata and links are unavailable.
-            </p>
-          </div>
+            ) : null}
+          </dl>
+          <span className="result-status-badge">Not verified</span>
+          <p className="book-work-detail-description">
+            We could not verify this book from the video, so confirmed details are unavailable.
+          </p>
         </div>
       )
     }

@@ -35,9 +35,9 @@ export function BookWorkResults({ books }: BookWorkResultsProps) {
 
   return (
     <div className="book-work-results">
-      <section className="book-work-results-section" aria-labelledby="book-works-heading">
-        <h2 id="book-works-heading">Book Works</h2>
-        <ul className="book-work-grid">
+      <section className="result-category book-work-results-section" aria-labelledby="books-heading">
+        <h2 id="books-heading">Books</h2>
+        <ul className="result-grid">
           {books.map((result) => (
             <li key={getBookResultKey(result)}>
               <BookWorkCard result={result} onOpenDetails={handleOpenDetails} />

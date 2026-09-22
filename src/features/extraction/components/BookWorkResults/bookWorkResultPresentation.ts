@@ -1,4 +1,4 @@
-import type { Book, BookEdition, BookMention } from '../../types'
+import type { Book, BookMention } from '../../types'
 
 export function formatAuthorCredits(names: ReadonlyArray<string>): string {
   return names.join(', ')
@@ -14,25 +14,6 @@ export function formatBookMention(mention: BookMention): string {
   return formatBookWorkIdentity(mention.title, mention.authors)
 }
 
-export function formatPreferredBookEditionSummary(edition: BookEdition | null): string {
-  if (edition === null) {
-    return 'Unavailable'
-  }
-
-  if (edition.title !== null && edition.publication_year !== null) {
-    return `${edition.title} · ${edition.publication_year}`
-  }
-
-  if (edition.title !== null) {
-    return edition.title
-  }
-
-  if (edition.publication_year !== null) {
-    return `Publication year ${edition.publication_year}`
-  }
-
-  return edition.open_library_edition_id
-}
 
 function areAuthorCreditsEqual(
   mentionAuthorNames: ReadonlyArray<string>,

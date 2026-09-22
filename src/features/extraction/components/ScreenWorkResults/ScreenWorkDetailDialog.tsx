@@ -128,7 +128,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
                 <p className="screen-work-detail-description">{description}</p>
               ) : null}
               <a
-                className="screen-work-detail-link"
+                className="button secondary screen-work-detail-link"
                 href={movie.tmdb_url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -208,7 +208,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
               <p className="screen-work-detail-description">{description}</p>
             ) : null}
             <a
-              className="screen-work-detail-link"
+              className="button secondary screen-work-detail-link"
               href={tvSeries.tmdb_url}
               target="_blank"
               rel="noopener noreferrer"
