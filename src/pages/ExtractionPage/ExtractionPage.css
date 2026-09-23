@@ -790,6 +790,10 @@ main {
   overflow: hidden;
 }
 
+#screen-work-detail-dialog {
+  width: min(560px, 100vw);
+}
+
 #screen-work-detail-dialog:not([open]),
 #music-detail-dialog:not([open]),
 #book-work-detail-dialog:not([open]) {
@@ -802,7 +806,6 @@ main {
   background: rgb(2 4 7 / 72%);
 }
 
-.screen-work-detail-dialog-header,
 .music-detail-dialog-header,
 .book-work-detail-dialog-header {
   display: flex;
@@ -814,21 +817,31 @@ main {
   border-bottom: 1px solid var(--line);
 }
 
-.screen-work-detail-dialog-header h2,
 .music-detail-dialog-header h2,
 .book-work-detail-dialog-header h2 {
-  margin: 0;
+  margin: auto 0 auto 0;
   font-size: 1.15rem;
   overflow-wrap: anywhere;
 }
 
-.screen-work-detail-dialog-header .button,
 .music-detail-dialog-header .button,
 .book-work-detail-dialog-header .button {
   flex: 0 0 auto;
 }
 
-.screen-work-detail-dialog-body,
+.screen-work-detail-dialog-close {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  margin: 1rem 1.15rem 0 0;
+}
+
+.screen-work-detail-dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0.5rem 1.25rem 1.25rem;
+  overflow: auto;
+}
+
 .music-detail-dialog-body,
 .book-work-detail-dialog-body {
   flex: 1 1 auto;
@@ -837,7 +850,13 @@ main {
   overflow: auto;
 }
 
-.screen-work-detail-grid,
+.screen-work-detail-grid {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
 .music-detail-grid,
 .book-work-detail-grid {
   display: grid;
@@ -846,7 +865,10 @@ main {
   align-items: start;
 }
 
-.screen-work-detail-grid .poster-frame,
+.screen-work-detail-grid .poster-frame {
+  width: 180px;
+}
+
 .music-detail-grid .music-cover-frame,
 .book-work-detail-grid .book-cover-frame {
   width: 138px;
@@ -1021,13 +1043,19 @@ main {
     border-radius: 0;
   }
 
-  .screen-work-detail-grid,
+  .screen-work-detail-grid {
+    grid-template-columns: 132px minmax(0, 1fr);
+  }
+
   .music-detail-grid,
   .book-work-detail-grid {
     grid-template-columns: 105px minmax(0, 1fr);
   }
 
-  .screen-work-detail-grid .poster-frame,
+  .screen-work-detail-grid .poster-frame {
+    width: 132px;
+  }
+
   .music-detail-grid .music-cover-frame,
   .book-work-detail-grid .book-cover-frame {
     width: 105px;

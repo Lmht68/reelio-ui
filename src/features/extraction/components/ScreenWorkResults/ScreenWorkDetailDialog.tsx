@@ -79,10 +79,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
     if (selection.kind === 'movie') {
       if (selection.result.status === 'resolved') {
         const movie = selection.result.movie
-        const mention = selection.result.movie_mention
-        const description = movie.description.trim()
-        const isInterpretedIdentityDifferent =
-          movie.title !== mention.title || movie.year !== mention.year
+        const description = movie.description
 
         detailContent = (
           <div className="screen-work-detail-grid">
@@ -93,7 +90,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
               posterUrl={movie.poster_url}
             />
             <div className="screen-work-detail-copy">
-              <h3>{movie.title}</h3>
+              <h2>{movie.title}</h2>
               <dl className="screen-work-detail-list">
                 <div>
                   <dt>Year</dt>
@@ -103,14 +100,6 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
                   <dt>Score</dt>
                   <dd>{movie.tmdb_score.toFixed(1)}</dd>
                 </div>
-                {isInterpretedIdentityDifferent ? (
-                  <div>
-                    <dt>Interpreted as</dt>
-                    <dd>
-                      {mention.title} ({mention.year})
-                    </dd>
-                  </div>
-                ) : null}
                 {movie.directors.length > 0 ? (
                   <div>
                     <dt>Directors</dt>
@@ -144,7 +133,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
 
         detailContent = (
           <div className="screen-work-detail-copy screen-work-detail-copy-unverified">
-            <h3>{mention.title}</h3>
+            <h2>{mention.title}</h2>
             <p className="screen-work-detail-year">{mention.year}</p>
             <span className="result-status-badge screen-work-status-badge">Not verified</span>
             <p className="screen-work-detail-description">
@@ -155,10 +144,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
       }
     } else if (selection.result.status === 'resolved') {
       const tvSeries = selection.result.tv_series
-      const mention = selection.result.tv_series_mention
-      const description = tvSeries.description.trim()
-      const isInterpretedIdentityDifferent =
-        tvSeries.title !== mention.title || tvSeries.first_air_year !== mention.year
+      const description = tvSeries.description
 
       detailContent = (
         <div className="screen-work-detail-grid">
@@ -169,7 +155,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
             posterUrl={tvSeries.poster_url}
           />
           <div className="screen-work-detail-copy">
-            <h3>{tvSeries.title}</h3>
+            <h2>{tvSeries.title}</h2>
             <dl className="screen-work-detail-list">
               <div>
                 <dt>First aired</dt>
@@ -183,14 +169,6 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
                 <dt>Score</dt>
                 <dd>{tvSeries.tmdb_score.toFixed(1)}</dd>
               </div>
-              {isInterpretedIdentityDifferent ? (
-                <div>
-                  <dt>Interpreted as</dt>
-                  <dd>
-                    {mention.title} ({mention.year})
-                  </dd>
-                </div>
-              ) : null}
               {tvSeries.creators.length > 0 ? (
                 <div>
                   <dt>Creators</dt>
@@ -224,7 +202,7 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
 
       detailContent = (
         <div className="screen-work-detail-copy screen-work-detail-copy-unverified">
-          <h3>{mention.title}</h3>
+          <h2>{mention.title}</h2>
           <p className="screen-work-detail-year">{mention.year}</p>
           <span className="result-status-badge screen-work-status-badge">Not verified</span>
           <p className="screen-work-detail-description">
@@ -240,23 +218,21 @@ export function ScreenWorkDetailDialog({ selection, onClose }: ScreenWorkDetailD
       ref={dialogRef}
       id="screen-work-detail-dialog"
       className="screen-work-detail-dialog"
-      aria-labelledby="screen-work-detail-dialog-title"
+      aria-label={detailTitle === null ? undefined : `${detailTitle} details`}
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
     >
       {selection !== null ? (
         <>
-          <div className="screen-work-detail-dialog-header">
-            <h2 id="screen-work-detail-dialog-title">{detailTitle} details</h2>
-            <button
-              ref={closeButtonRef}
-              className="button secondary"
-              type="button"
-              onClick={closeDialog}
-            >
-              Close details
-            </button>
-          </div>
+          <button
+            ref={closeButtonRef}
+            className="button secondary screen-work-detail-dialog-close"
+            type="button"
+            aria-label="Close details"
+            onClick={closeDialog}
+          >
+            X
+          </button>
           <div className="screen-work-detail-dialog-body">{detailContent}</div>
         </>
       ) : null}

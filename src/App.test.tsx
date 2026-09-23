@@ -423,6 +423,12 @@ describe('video discovery application', () => {
 
     expect(within(resolvedDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
     expect(
+      within(resolvedDialog).getByRole('heading', { level: 2, name: 'The Last of Us' }),
+    ).toBeVisible()
+    expect(
+      within(resolvedDialog).queryByRole('heading', { name: 'The Last of Us details' }),
+    ).not.toBeInTheDocument()
+    expect(
       within(resolvedDialog).getByText('A smuggler escorts a teenager across a ruined America.'),
     ).toBeVisible()
     expect(within(resolvedDialog).getByText('Craig Mazin, Neil Druckmann')).toBeVisible()
@@ -450,8 +456,8 @@ describe('video discovery application', () => {
       name: "Le Fabuleux Destin d'Amélie Poulain details",
     })
 
-    expect(within(movieDialog).getByText('Interpreted as')).toBeVisible()
-    expect(within(movieDialog).getByText('Amélie (2001)')).toBeVisible()
+    expect(within(movieDialog).queryByText('Interpreted as')).not.toBeInTheDocument()
+    expect(within(movieDialog).queryByText('Amélie (2001)')).not.toBeInTheDocument()
     expect(within(movieDialog).queryByText(/Mentioned as/)).not.toBeInTheDocument()
 
     await user.keyboard('{Escape}')
@@ -547,6 +553,43 @@ describe('video discovery application', () => {
     expect(screen.queryByText(/Result Statistics|n_mentions|n_resolved|n_unresolved/)).not.toBeInTheDocument()
   })
 
+  it('should collapse unavailable verified artist details when provider credits are absent', async () => {
+    const user = userEvent.setup()
+    const response = createMusicExtractionResponse()
+    const songWithNoArtistCredits = response.results.tracks[2]
+    const albumWithNoArtistCredits = response.results.music_releases[2]
+
+    if (
+      songWithNoArtistCredits === undefined ||
+      songWithNoArtistCredits.status !== 'resolved' ||
+      albumWithNoArtistCredits === undefined ||
+      albumWithNoArtistCredits.status !== 'resolved'
+    ) {
+      throw new Error('Music fixture must contain resolved song and album results.')
+    }
+
+    songWithNoArtistCredits.track.artists = []
+    albumWithNoArtistCredits.music_release.artists = []
+    fetchMock.mockResolvedValueOnce(jsonResponse(response))
+    render(<App />)
+
+    await submitPublicVideo(user, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    const songCard = await screen.findByRole('button', { name: 'Open details for Metadata Missing' })
+    const albumCard = screen.getByRole('button', { name: 'Open details for Collected Nights' })
+
+    expect(within(songCard).queryByText('Artist unavailable')).not.toBeInTheDocument()
+    expect(within(albumCard).queryByText('Artist unavailable')).not.toBeInTheDocument()
+
+    await user.click(songCard)
+    const songDialog = await screen.findByRole('dialog', { name: 'Metadata Missing details' })
+    expect(within(songDialog).queryByText('Artist')).not.toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    await user.click(albumCard)
+    const albumDialog = await screen.findByRole('dialog', { name: 'Collected Nights details' })
+    expect(within(albumDialog).queryByText('Artist')).not.toBeInTheDocument()
+  })
+
   it('should expose plain music details and restore focus when a Result card is opened', async () => {
     const user = userEvent.setup()
     fetchMock.mockResolvedValueOnce(jsonResponse(createMusicExtractionResponse()))
@@ -566,17 +609,17 @@ describe('video discovery application', () => {
       name: 'Open One More Time (2011 Remaster) on Spotify, opens in a new tab',
     })
 
-    expect(within(resolvedSongDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(resolvedSongDialog).getByRole('button', { name: 'X' })).toHaveFocus()
     expect(within(resolvedSongDialog).getByText('Song title')).toBeVisible()
     expect(within(resolvedSongDialog).getByText('Artist')).toBeVisible()
     expect(within(resolvedSongDialog).getByText('Album')).toBeVisible()
     expect(within(resolvedSongDialog).getByText('Released')).toBeVisible()
-    expect(within(resolvedSongDialog).getByText('Interpreted as')).toBeVisible()
+    expect(within(resolvedSongDialog).queryByText('Interpreted as')).not.toBeInTheDocument()
     expect(
-      within(resolvedSongDialog).getByText(
+      within(resolvedSongDialog).queryByText(
         'One More Time by Daft Punk, Romanthony · Discovery (2001)',
       ),
-    ).toBeVisible()
+    ).not.toBeInTheDocument()
     expect(within(resolvedSongDialog).queryByText(/Spotify (Track|Album) ID|Preferred Music Release|Music Release type/)).not.toBeInTheDocument()
     expect(songSpotifyLink).toHaveTextContent('Open on Spotify')
     expect(songSpotifyLink).toHaveAttribute(
@@ -600,7 +643,7 @@ describe('video discovery application', () => {
       name: 'Open Random Access Memories on Spotify, opens in a new tab',
     })
 
-    expect(within(resolvedAlbumDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(resolvedAlbumDialog).getByRole('button', { name: 'X' })).toHaveFocus()
     expect(within(resolvedAlbumDialog).getByText('Album')).toBeVisible()
     expect(within(resolvedAlbumDialog).getByText('Artist')).toBeVisible()
     expect(within(resolvedAlbumDialog).getByText('Released')).toBeVisible()
@@ -613,7 +656,7 @@ describe('video discovery application', () => {
     expect(albumSpotifyLink).toHaveAttribute('target', '_blank')
     expect(albumSpotifyLink).toHaveAttribute('rel', 'noopener noreferrer')
 
-    await user.click(within(resolvedAlbumDialog).getByRole('button', { name: 'Close details' }))
+    await user.click(within(resolvedAlbumDialog).getByRole('button', { name: 'X' }))
     expect(resolvedAlbumCard).toHaveFocus()
 
     const unverifiedSongCard = screen.getByRole('button', { name: 'Open details for Unknown Track' })
@@ -623,7 +666,7 @@ describe('video discovery application', () => {
       name: 'Unknown Track details',
     })
 
-    expect(within(unverifiedSongDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(unverifiedSongDialog).getByRole('button', { name: 'X' })).toHaveFocus()
     expect(within(unverifiedSongDialog).getByText('Not verified')).toBeVisible()
     expect(within(unverifiedSongDialog).getByText('Song title')).toBeVisible()
     expect(within(unverifiedSongDialog).getByText('Artist')).toBeVisible()
@@ -716,11 +759,13 @@ describe('video discovery application', () => {
       name: 'Open Pride and Prejudice on Open Library, opens in a new tab',
     })
 
-    expect(within(resolvedBookDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(resolvedBookDialog).getByRole('button', { name: 'X' })).toHaveFocus()
     expect(within(resolvedBookDialog).getByText('Book title')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('Author')).toBeVisible()
-    expect(within(resolvedBookDialog).getByText('Interpreted as')).toBeVisible()
-    expect(within(resolvedBookDialog).getByText('Pride & Prejudice by Jane Austen')).toBeVisible()
+    expect(within(resolvedBookDialog).queryByText('Interpreted as')).not.toBeInTheDocument()
+    expect(
+      within(resolvedBookDialog).queryByText('Pride & Prejudice by Jane Austen'),
+    ).not.toBeInTheDocument()
     expect(within(resolvedBookDialog).getByText('Published')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('Publisher')).toBeVisible()
     expect(within(resolvedBookDialog).getByText('ISBN-10')).toBeVisible()
@@ -757,7 +802,7 @@ describe('video discovery application', () => {
     expect(within(noMetadataBookDialog).queryByText('ISBN-10')).not.toBeInTheDocument()
     expect(within(noMetadataBookDialog).queryByText('ISBN-13')).not.toBeInTheDocument()
 
-    await user.click(within(noMetadataBookDialog).getByRole('button', { name: 'Close details' }))
+    await user.click(within(noMetadataBookDialog).getByRole('button', { name: 'X' }))
     expect(noMetadataBookCard).toHaveFocus()
 
     const unverifiedBookCard = screen.getByRole('button', {
@@ -767,7 +812,7 @@ describe('video discovery application', () => {
     await user.keyboard('{Enter}')
     const unverifiedBookDialog = await screen.findByRole('dialog', { name: 'Unknown Book details' })
 
-    expect(within(unverifiedBookDialog).getByRole('button', { name: 'Close details' })).toHaveFocus()
+    expect(within(unverifiedBookDialog).getByRole('button', { name: 'X' })).toHaveFocus()
     expect(within(unverifiedBookDialog).getByText('Book title')).toBeVisible()
     expect(within(unverifiedBookDialog).getByText('Author')).toBeVisible()
     expect(within(unverifiedBookDialog).getByText('Not verified')).toBeVisible()
@@ -814,9 +859,9 @@ describe('video discovery application', () => {
     expect(within(dialog).getByText('en-GB')).toBeVisible()
     expect(within(dialog).getByText('Speech transcription')).toBeVisible()
     expect(within(dialog).queryByText('whisper')).not.toBeInTheDocument()
-    expect(within(dialog).getByRole('button', { name: 'Close Transcript' })).toHaveFocus()
+    expect(within(dialog).getByRole('button', { name: 'X Transcript' })).toHaveFocus()
 
-    await user.click(within(dialog).getByRole('button', { name: 'Close Transcript' }))
+    await user.click(within(dialog).getByRole('button', { name: 'X Transcript' }))
     expect(screen.queryByRole('dialog', { name: 'Transcript' })).not.toBeInTheDocument()
     expect(transcriptTrigger).toHaveFocus()
 
@@ -829,7 +874,7 @@ describe('video discovery application', () => {
 
     await user.keyboard('{Enter}')
     const reopenedDialog = await screen.findByRole('dialog', { name: 'Transcript' })
-    expect(within(reopenedDialog).getByRole('button', { name: 'Close Transcript' })).toHaveFocus()
+    expect(within(reopenedDialog).getByRole('button', { name: 'X Transcript' })).toHaveFocus()
 
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog', { name: 'Transcript' })).not.toBeInTheDocument()

@@ -7,11 +7,7 @@ import {
 } from 'react'
 import type { BookResult } from '../../types'
 import { BookWorkArtwork } from './BookWorkArtwork'
-import {
-  formatAuthorCredits,
-  formatBookMention,
-  isBookMentionDifferent,
-} from './bookWorkResultPresentation'
+import { formatAuthorCredits } from './bookWorkResultPresentation'
 
 type BookWorkDetailDialogProps = {
   selection: BookResult | null
@@ -81,9 +77,7 @@ export function BookWorkDetailDialog({ selection, onClose }: BookWorkDetailDialo
   if (selection !== null) {
     if (selection.status === 'resolved') {
       const book = selection.book
-      const mention = selection.book_mention
       const authorCredits = formatAuthorCredits(book.authors.map(({ name }) => name))
-      const hasDifferentMention = isBookMentionDifferent(mention, book)
       const edition = book.edition
 
       detailContent = (
@@ -105,12 +99,6 @@ export function BookWorkDetailDialog({ selection, onClose }: BookWorkDetailDialo
                 <div>
                   <dt>Author</dt>
                   <dd>{authorCredits}</dd>
-                </div>
-              ) : null}
-              {hasDifferentMention ? (
-                <div>
-                  <dt>Interpreted as</dt>
-                  <dd>{formatBookMention(mention)}</dd>
                 </div>
               ) : null}
               {edition !== null && edition.publication_year !== null ? (
@@ -197,7 +185,7 @@ export function BookWorkDetailDialog({ selection, onClose }: BookWorkDetailDialo
               type="button"
               onClick={closeDialog}
             >
-              Close details
+              X
             </button>
           </div>
           <div className="book-work-detail-dialog-body">{detailContent}</div>

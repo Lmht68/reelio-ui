@@ -9,11 +9,7 @@ import { MusicArtwork } from './MusicArtwork'
 import type { MusicSelection } from './MusicCard'
 import {
   formatArtistNames,
-  formatMusicReleaseMention,
-  formatTrackMention,
   getAvailableMusicText,
-  isMusicReleaseMentionDifferent,
-  isTrackMentionDifferent,
 } from './musicResultPresentation'
 
 type MusicDetailDialogProps = {
@@ -93,11 +89,9 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
     if (selection.kind === 'track') {
       if (selection.result.status === 'resolved') {
         const track = selection.result.track
-        const mention = selection.result.track_mention
         const artistCredits = formatArtistNames(track.artists.map(({ name }) => name))
         const albumTitle = getAvailableMusicText(track.preferred_music_release.release_title)
         const releaseDate = getAvailableMusicText(track.preferred_music_release.release_date)
-        const hasDifferentMention = isTrackMentionDifferent(mention, track)
 
         detailContent = (
           <div className="music-detail-grid">
@@ -114,14 +108,10 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
                   <dt>Song title</dt>
                   <dd>{track.track_title}</dd>
                 </div>
-                <div>
-                  <dt>Artist</dt>
-                  <dd>{artistCredits || 'Artist unavailable'}</dd>
-                </div>
-                {hasDifferentMention ? (
+                {artistCredits.length > 0 ? (
                   <div>
-                    <dt>Interpreted as</dt>
-                    <dd>{formatTrackMention(mention)}</dd>
+                    <dt>Artist</dt>
+                    <dd>{artistCredits}</dd>
                   </div>
                 ) : null}
                 {albumTitle !== null ? (
@@ -191,10 +181,8 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
       }
     } else if (selection.result.status === 'resolved') {
       const musicRelease = selection.result.music_release
-      const mention = selection.result.music_release_mention
       const artistCredits = formatArtistNames(musicRelease.artists.map(({ name }) => name))
       const releaseDate = getAvailableMusicText(musicRelease.release_date)
-      const hasDifferentMention = isMusicReleaseMentionDifferent(mention, musicRelease)
 
       detailContent = (
         <div className="music-detail-grid">
@@ -211,14 +199,10 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
                 <dt>Album</dt>
                 <dd>{musicRelease.release_title}</dd>
               </div>
-              <div>
-                <dt>Artist</dt>
-                <dd>{artistCredits || 'Artist unavailable'}</dd>
-              </div>
-              {hasDifferentMention ? (
+              {artistCredits.length > 0 ? (
                 <div>
-                  <dt>Interpreted as</dt>
-                  <dd>{formatMusicReleaseMention(mention)}</dd>
+                  <dt>Artist</dt>
+                  <dd>{artistCredits}</dd>
                 </div>
               ) : null}
               {releaseDate !== null ? (
@@ -293,7 +277,7 @@ export function MusicDetailDialog({ selection, onClose }: MusicDetailDialogProps
               type="button"
               onClick={closeDialog}
             >
-              Close details
+              X
             </button>
           </div>
           <div className="music-detail-dialog-body">{detailContent}</div>

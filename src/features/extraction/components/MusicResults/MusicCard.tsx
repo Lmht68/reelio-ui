@@ -37,7 +37,7 @@ export function MusicCard(props: MusicCardProps) {
           />
           <div className="music-card-copy">
             <p className="music-card-title">{track.track_title}</p>
-            <p className="music-card-artists">{artistCredits || 'Artist unavailable'}</p>
+            {artistCredits.length > 0 ? <p className="music-card-artists">{artistCredits}</p> : null}
             {albumTitle !== null ? <p className="music-card-release">{albumTitle}</p> : null}
           </div>
         </button>
@@ -95,7 +95,7 @@ export function MusicCard(props: MusicCardProps) {
         />
         <div className="music-card-copy">
           <p className="music-card-title">{musicRelease.release_title}</p>
-          <p className="music-card-artists">{artistCredits || 'Artist unavailable'}</p>
+          {artistCredits.length > 0 ? <p className="music-card-artists">{artistCredits}</p> : null}
         </div>
       </button>
     )

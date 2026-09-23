@@ -92,7 +92,7 @@ export function TranscriptDialog({ transcript }: { transcript: Transcript }) {
             type="button"
             onClick={closeDialog}
           >
-            Close Transcript
+            X Transcript
           </button>
         </div>
         <div className="transcript-dialog-body">
